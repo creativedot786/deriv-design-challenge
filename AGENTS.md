@@ -91,13 +91,45 @@ Naming matches Figma exactly (Figma `bg/brand-muted` → CSS `--bg-brand-muted`)
 - Tokens: `--bg-surface`, `--bg-surface-muted`, `--bg-inverse`, `--shadow-sm/md`, `--radius-lg`, `--space-5/6`, `--text-inverse`, `--text-inverse-muted`.
 - **Spotlight is reserved for exactly one moment per screen** (the Dashboard balance). Don't use it for a second element on the same screen — that defeats its purpose as a hero moment.
 
+### Avatar (`src/design-system/components/Avatar`)
+
+```tsx
+<Avatar initials="AK" />           {/* default size 36 */}
+<Avatar initials="AK" size={48} /> {/* Quick Send uses 48 */}
+```
+
+- `initials`, `size` (px, default 36 — 40 in the Dashboard header, 48 in Quick Send). These are fixed non-token dimensions, an accepted exception (same reasoning as in Figma): avatars are a small, closed set of sizes, not a spacing concern.
+- Always `aria-hidden` — the initials are decorative. Every place Avatar is used, the full name is rendered as visible text alongside it; don't use Avatar somewhere that omits the name, or the decorative-only assumption breaks.
+
+### Transaction Row (`src/design-system/components/TransactionRow`)
+
+```tsx
+<TransactionRow
+  name="Jordan Diaz"
+  meta="2:14 PM"
+  amount="-$250.00"
+  direction="outgoing"
+  status="success"
+  statusLabel="Completed"
+/>
+```
+
+- `direction`: `'incoming' | 'outgoing'` — drives both the icon (down/up arrow) and the amount color (`text-success` for incoming, `text-primary` for outgoing). Not inferred from the amount string's sign — pass it explicitly.
+- `status` + `statusLabel`: renders a `Badge` (`quiet` variant) internally. **This is a deliberate fix over the Figma source component**, where Status was a plain TEXT property hardcoded to `text/success` green regardless of its actual value — meaning a "Failed" status would still render green in Figma. In code, `status` is properly typed as `BadgeKind` so the color is always correct.
+- Composes `Badge` internally — don't duplicate badge styling here if you're extending this component; adjust `Badge` instead.
+- Tokens: `--bg-surface-muted`, `--text-secondary/primary/muted/success`, `--radius-md`, `--space-1/2/3`.
+
+### Quick Send Item, Recipient Option, Add Recipient, Amount Input, Total Block
+
+_TODO — remaining composed patterns, filled in as each is built._
+
 Known component list (from Figma), in build order:
 - [x] Button — Primary/Secondary/Ghost/Link × Default/Hover/Loading/Disabled
 - [x] Input — Default/Focus/Error/Disabled
 - [x] Badge — Kind (Success/Warning/Error/Neutral) × Style (Pill/Quiet)
 - [x] Card — Elevated/Flat/Spotlight
-- [ ] Avatar
-- [ ] Transaction Row
+- [x] Avatar
+- [x] Transaction Row
 - [ ] Quick Send Item
 - [ ] Recipient Option / Add Recipient
 - [ ] Amount Input
