@@ -1,0 +1,124 @@
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  width: fit-content;
+  padding: var(--space-3) var(--space-5);
+  border-radius: var(--radius-md);
+  border: 1.5px solid transparent;
+  cursor: pointer;
+  font-family: inherit;
+  transition:
+    background-color 120ms ease,
+    box-shadow 120ms ease,
+    border-color 120ms ease;
+
+  /* spinner colors default to the secondary/ghost/link treatment; primary overrides below */
+  --spinner-ring: var(--bg-brand-muted);
+  --spinner-arc: var(--text-brand);
+}
+
+.button:focus-visible {
+  outline: 2px solid var(--border-brand);
+  outline-offset: 2px;
+}
+
+.fullWidth {
+  width: 100%;
+}
+
+/* ---------- Primary ---------- */
+.primary {
+  background: var(--bg-brand);
+  color: var(--text-inverse);
+  box-shadow: var(--shadow-sm);
+  --spinner-ring: rgba(255, 255, 255, 0.4);
+  --spinner-arc: var(--text-inverse);
+}
+.primary:hover:not(:disabled) {
+  background: var(--brand-600);
+  box-shadow: var(--shadow-md);
+}
+
+/* ---------- Secondary ---------- */
+.secondary {
+  background: var(--bg-surface);
+  color: var(--text-brand);
+  border-color: var(--border-brand);
+}
+.secondary:hover:not(:disabled) {
+  background: var(--bg-brand-muted);
+}
+
+/* ---------- Ghost ---------- */
+.ghost {
+  background: transparent;
+  color: var(--text-brand);
+}
+.ghost:hover:not(:disabled) {
+  background: var(--bg-brand-muted);
+}
+
+/* ---------- Link ----------
+ * Not a smaller Ghost: fully transparent in every state, tight inline
+ * padding, underline on hover instead of a background tint. Use for
+ * in-flow text CTAs (Change, Breakdown, View receipt), not standalone
+ * actions (those are Ghost).
+ */
+.link {
+  background: transparent;
+  color: var(--text-brand);
+  padding: var(--space-1);
+  border: none;
+}
+.link:hover:not(:disabled) {
+  text-decoration: underline;
+}
+
+.button:disabled {
+  cursor: not-allowed;
+}
+
+/*
+ * Muted "disabled" look — a dedicated class rather than the :disabled
+ * pseudo-class, because isLoading also sets the native disabled
+ * attribute (for non-interactivity) but must keep its full-color
+ * appearance, not the muted disabled one.
+ */
+.disabledLook.primary {
+  background: var(--bg-surface-muted);
+  color: var(--text-disabled);
+  box-shadow: none;
+}
+.disabledLook.secondary {
+  background: var(--bg-surface-muted);
+  color: var(--text-disabled);
+  border-color: var(--border-secondary);
+}
+.disabledLook.ghost,
+.disabledLook.link {
+  color: var(--text-disabled);
+}
+
+.spinner {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid var(--spinner-ring);
+  border-top-color: var(--spinner-arc);
+  animation: spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation: none;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

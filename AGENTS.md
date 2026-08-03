@@ -34,10 +34,23 @@ Naming matches Figma exactly (Figma `bg/brand-muted` → CSS `--bg-brand-muted`)
 
 ## Component API reference
 
-_TODO — fill in one entry per component as it's built (Phase 2 milestone M3). Each entry should cover: props/variants, which tokens it binds to, and a do/don't example._
+### Button (`src/design-system/components/Button`)
+
+```tsx
+<Button variant="primary" isLoading={false} fullWidth={false} disabled={false}>
+  Send money
+</Button>
+```
+
+- `variant`: `'primary' | 'secondary' | 'ghost' | 'link'` (default `'primary'`)
+- `isLoading`: shows a spinner, sets the native `disabled` attribute for non-interactivity, but **keeps full-color styling** — it is not the same visual state as `disabled`. If you need to check one bug class in this component, check this: styling must key off a dedicated `disabledLook` class applied only when `disabled && !isLoading`, never off the `:disabled` pseudo-class directly, or Loading silently inherits the muted Disabled look.
+- `fullWidth`: stretches to container width; default is `fit-content`. Don't make buttons full-width by default — most Buttons (Cancel, Change, Breakdown) should hug their label.
+- Extends all native `<button>` props (`onClick`, `type`, `aria-*`, etc.) — pass through freely.
+- Tokens: `--bg-brand`, `--bg-surface`, `--bg-brand-muted`, `--bg-surface-muted`, `--text-inverse`, `--text-brand`, `--text-disabled`, `--border-brand`, `--border-secondary`, `--radius-md`, `--space-2/3/5`, `--shadow-sm/md`, `.ds-text-label`.
+- **Do**: `<Button variant="link">Change</Button>` for an inline text CTA. **Don't**: reach for `variant="ghost"` with custom inline padding overrides to fake a link — use `variant="link"`, it exists for exactly this.
 
 Known component list (from Figma), in build order:
-- [ ] Button — Primary/Secondary/Ghost/Link × Default/Hover/Loading/Disabled
+- [x] Button — Primary/Secondary/Ghost/Link × Default/Hover/Loading/Disabled
 - [ ] Input — Default/Focus/Error/Disabled
 - [ ] Badge — Kind (Success/Warning/Error/Neutral) × Style (Pill/Quiet)
 - [ ] Card — Elevated/Flat/Spotlight
