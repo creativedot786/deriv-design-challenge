@@ -75,11 +75,27 @@ Naming matches Figma exactly (Figma `bg/brand-muted` → CSS `--bg-brand-muted`)
 - Tokens: `--text-success/warning/error/secondary`, `--border-success/warning/error` (reused for the dot color — semantic, not the raw `success-500` primitive), `--text-muted` (neutral dot), `--bg-*-muted` (pill background), `--radius-full`, `--space-1/2`, `.ds-text-caption`.
 - **Do not** add a 5th `kind` or reach for a raw primitive color for a new status — extend the semantic token set in `colors.css` first if a genuinely new status is needed.
 
+### Card (`src/design-system/components/Card`)
+
+```tsx
+<Card variant="spotlight">
+  <p className="ds-text-caption" style={{ color: 'var(--text-inverse-muted)' }}>Available balance</p>
+  <p className="ds-text-display">$12,480.50</p>
+</Card>
+```
+
+- `variant`: `'elevated' | 'flat' | 'spotlight'`, default `'elevated'`.
+- **Deliberately a generic container (`children`), not a fixed Eyebrow/Value/Subtext prop API.** The Figma component had rigid props and it broke down the moment a receipt-style card needed multiple label/value rows plus a Badge instead — don't reintroduce that rigidity in code. Compose content with the typography utility classes (`ds-text-*`) directly inside `<Card>`.
+- `spotlight` sets `color: var(--text-inverse)` on the card itself, but its own children still need explicit `var(--text-inverse-muted)` for secondary text (eyebrow/subtext) — the card only sets the primary text color for you.
+- Extends native `<div>` props (`className`, `style`, `onClick`, etc.).
+- Tokens: `--bg-surface`, `--bg-surface-muted`, `--bg-inverse`, `--shadow-sm/md`, `--radius-lg`, `--space-5/6`, `--text-inverse`, `--text-inverse-muted`.
+- **Spotlight is reserved for exactly one moment per screen** (the Dashboard balance). Don't use it for a second element on the same screen — that defeats its purpose as a hero moment.
+
 Known component list (from Figma), in build order:
 - [x] Button — Primary/Secondary/Ghost/Link × Default/Hover/Loading/Disabled
 - [x] Input — Default/Focus/Error/Disabled
 - [x] Badge — Kind (Success/Warning/Error/Neutral) × Style (Pill/Quiet)
-- [ ] Card — Elevated/Flat/Spotlight
+- [x] Card — Elevated/Flat/Spotlight
 - [ ] Avatar
 - [ ] Transaction Row
 - [ ] Quick Send Item

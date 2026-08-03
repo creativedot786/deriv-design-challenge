@@ -1,0 +1,36 @@
+.card {
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+}
+
+.elevated {
+  background: var(--bg-surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.flat {
+  background: var(--bg-surface-muted);
+}
+
+.spotlight {
+  background: var(--bg-inverse);
+  box-shadow: var(--shadow-md);
+  padding: var(--space-6);
+  color: var(--text-inverse);
+  position: relative;
+  overflow: hidden;
+}
+
+.spotlight::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(circle at 100% 0%, rgba(79, 70, 229, 0.35), transparent 60%);
+}
+
+/* Lift real content above the absolutely-positioned glow — without this,
+   the glow (being positioned) paints over static in-flow children. */
+.spotlight > * {
+  position: relative;
+}
