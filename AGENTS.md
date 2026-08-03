@@ -2,6 +2,17 @@
 
 Instructions for any AI coding tool (Claude Code, Cursor, Codex, etc.) working in this repository. Read this before touching `src/design-system` or any screen.
 
+## General principles
+
+- **Tech stack**: React + TypeScript + Vite. Don't introduce another framework, a CSS-in-JS library, or a component library (e.g. MUI, Chakra) — the whole point of this repo is a hand-built design system. Plain CSS (custom properties + stylesheets or CSS modules) is the styling approach.
+- **No hardcoded values.** Covered in detail under Ground Rules below — it's the single most important rule in this repo.
+- **No code duplication.** If you're about to copy-paste a block of JSX/CSS for the second time, stop and extract it — a component, a shared type, a utility function, a token. Two nearly-identical `TransactionRow` implementations in two screens is a bug, not a shortcut.
+- **Clean architecture / separation of concerns**: tokens don't know about components, components don't know about screens, screens don't know about each other. Data flows one direction: `tokens → components → screens`. A component should never import from `src/screens`.
+- **Small, focused components.** A component does one job. If a component needs an internal switch/if-chain to render fundamentally different markup depending on a prop, it's probably two components (or a variant, if the design system defines one).
+- **Type everything.** No `any`. Props get explicit interfaces. Variant props should be union types (`'primary' | 'secondary' | 'ghost' | 'link'`), not `string`.
+- **Consistency over cleverness.** Match the existing pattern in the codebase even if you'd personally write it differently. If you think the existing pattern is wrong, say so and ask — don't silently diverge.
+- **Mocked data only.** No backend calls, no auth, no persistence. Mock data lives in `src/mocks`, typed, imported by screens.
+
 ## Ground rules
 
 1. **Never hardcode a color, spacing, radius, shadow, or font value in a screen or component.** Every value must come from a token in `src/design-system/tokens`. If a value you need doesn't exist as a token, stop and add it to tokens first — don't inline it "just this once."
