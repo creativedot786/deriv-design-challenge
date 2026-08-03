@@ -196,6 +196,34 @@ Not part of the original Figma component list — added in M4 because Send Money
 - **SuccessModal** — purely presentational, takes `recipientName`/`amount` as props from whatever `SendMoneyModal.onComplete` produced. Date/time are computed live (`new Date()`), not mocked — this is one of the few non-mocked pieces of data in the app, and that's intentional (a receipt's timestamp should reflect when it happened).
 - Recipients used in Quick Send and the Send Money recipient list come from **one shared mock array** (`src/mocks/recipients.ts`, filtered by `isFrequent`) — this is a deliberate architectural fix for a data-consistency bug that existed in the Figma/HTML passes, where Quick Send and the full recipient list were separate hand-maintained lists that drifted out of sync. Don't reintroduce two separate recipient lists.
 
+## States (M5)
+
+### Skeleton (`src/design-system/components/Skeleton`)
+
+```tsx
+<Skeleton width={120} height={12} />
+<Skeleton width={48} height={48} circle />
+<Skeleton inverse width={120} height={12} /> {/* for use inside the dark Spotlight card */}
+```
+
+- **Renders as a block-level element, not a bare `<span>`.** Caught a real bug here: an inline element silently ignores explicit `width`/`height` unless its parent happens to be flex/grid (which blockifies children) — Skeletons inside `Card` (a plain block) collapsed to 0×0 while ones inside a flex row rendered fine. Fixed with `display: block` on the base class. If you build another placeholder-style component, remember inline elements need this too.
+- Default tone binds to `border-strong`, not `bg-surface-muted` — the latter (used elsewhere for quiet fills) was too close in value to `bg-canvas`/`bg-surface` to read as a visible placeholder. `inverse` is a separate semi-transparent white tone for dark surfaces, also tuned up from an initial too-subtle value.
+- Respects `prefers-reduced-motion` (shimmer disabled).
+
+### EmptyState (`src/design-system/components/EmptyState`)
+
+```tsx
+<EmptyState icon={<InboxIcon />} title="No transactions yet" subtext="Your recent transfers will show up here." />
+```
+
+- Generic — `title` required, `subtext`/`icon` optional. Used today only for Dashboard's empty transaction list, but built as a shared component rather than inlined, since a second empty state (e.g. no recipients) is a likely future need.
+
+### Where states are actually wired up
+
+- **Dashboard**: real `isLoading` state (not a static prop), resolved via `setTimeout` in a `useEffect` to simulate the initial data fetch — shows Skeleton placeholders for the balance card, Quick Send row, and transaction list. Falls through to `EmptyState` if `transactions` is empty, or the real grouped list otherwise. All three branches (loading/empty/content) are mutually exclusive `if/else`, not overlapping conditionals.
+- **SendMoneyModal**: real validation, not decorative — `AmountInput`'s `errorText` is driven by `amount > currentUser.balance` (parsed from the mocked balance string), which also disables the Send button (`canSend`). Send shows `Button`'s `isLoading` for a simulated 700ms round-trip before calling `onComplete`.
+- `AmountInput` gained an `errorText` prop (mirrors `Input`'s pattern: red value text + red message, priority over `helperText`).
+
 ## Established design decisions worth knowing
 
 These aren't obvious from the code alone — they came out of an explicit design review pass and shouldn't be "corrected" back to a more conventional pattern:

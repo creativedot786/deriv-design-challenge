@@ -27,10 +27,16 @@ function formatCurrency(raw: string): string {
   return `$${value.toFixed(2)}`
 }
 
+/** "$12,480.50" -> 12480.50 */
+function parseCurrency(formatted: string): number {
+  return Number.parseFloat(formatted.replace(/[^0-9.]/g, ''))
+}
+
 export function SendMoneyModal({ isOpen, onClose, onComplete }: SendMoneyModalProps) {
   const [step, setStep] = useState<Step>('recipient')
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [amount, setAmount] = useState('250.00')
+  const [isSending, setIsSending] = useState(false)
 
   // Reset to a clean first step every time the modal is (re)opened.
   useEffect(() => {
@@ -38,15 +44,26 @@ export function SendMoneyModal({ isOpen, onClose, onComplete }: SendMoneyModalPr
       setStep('recipient')
       setSelectedId(null)
       setAmount('250.00')
+      setIsSending(false)
     }
   }, [isOpen])
 
   const selectedRecipient = recipients.find((r) => r.id === selectedId)
   const total = formatCurrency(amount)
+  const numericAmount = Number.parseFloat(amount)
+  const availableBalance = parseCurrency(currentUser.balance)
+  const isOverBalance = !Number.isNaN(numericAmount) && numericAmount > availableBalance
+  const isZeroOrInvalid = Number.isNaN(numericAmount) || numericAmount <= 0
+  const canSend = !isOverBalance && !isZeroOrInvalid
 
   const handleSend = () => {
-    if (!selectedRecipient) return
-    onComplete({ recipientName: selectedRecipient.name, amount: total })
+    if (!selectedRecipient || !canSend) return
+    setIsSending(true)
+    // Simulates a network round-trip — no backend, but the loading
+    // state on Send is real, not just a static prop.
+    setTimeout(() => {
+      onComplete({ recipientName: selectedRecipient.name, amount: total })
+    }, 700)
   }
 
   return (
@@ -104,11 +121,12 @@ export function SendMoneyModal({ isOpen, onClose, onComplete }: SendMoneyModalPr
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               helperText={`Available balance: ${currentUser.balance}`}
+              errorText={isOverBalance ? 'Exceeds available balance' : undefined}
             />
 
             <TotalBlock total={total} onBreakdownClick={() => console.log('Breakdown clicked')} />
 
-            <Button variant="primary" fullWidth onClick={handleSend}>
+            <Button variant="primary" fullWidth onClick={handleSend} isLoading={isSending} disabled={!canSend}>
               Send
             </Button>
           </>

@@ -28,6 +28,14 @@
   text-align: left;
 }
 
+.inputError {
+  color: var(--text-error);
+}
+
 .helper {
   color: var(--text-muted);
+}
+
+.helperError {
+  color: var(--text-error);
 }
