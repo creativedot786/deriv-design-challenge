@@ -1,0 +1,33 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  padding: var(--space-6) 0;
+}
+
+.row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-1);
+}
+
+.currency {
+  color: var(--text-muted);
+}
+
+.input {
+  font-family: inherit;
+  color: var(--text-primary);
+  background: transparent;
+  border: none;
+  outline: none;
+  width: auto;
+  max-width: 220px;
+  text-align: left;
+}
+
+.helper {
+  color: var(--text-muted);
+}

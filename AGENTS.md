@@ -119,21 +119,57 @@ Naming matches Figma exactly (Figma `bg/brand-muted` → CSS `--bg-brand-muted`)
 - Composes `Badge` internally — don't duplicate badge styling here if you're extending this component; adjust `Badge` instead.
 - Tokens: `--bg-surface-muted`, `--text-secondary/primary/muted/success`, `--radius-md`, `--space-1/2/3`.
 
-### Quick Send Item, Recipient Option, Add Recipient, Amount Input, Total Block
+### Quick Send Item (`src/design-system/components/QuickSendItem`)
 
-_TODO — remaining composed patterns, filled in as each is built._
+```tsx
+<QuickSendItem kind="person" initials="AK" name="Amara" onClick={...} />
+<QuickSendItem kind="add" onClick={...} />
+```
 
-Known component list (from Figma), in build order:
+- Discriminated union on `kind` (`'person' | 'add'`) — TypeScript will reject `initials`/`name` on the `'add'` variant, don't work around that with an `as` cast.
+- Composes `Avatar` (size 48) for the person variant.
+
+### Recipient Option / Add Recipient (`src/design-system/components/RecipientOption`)
+
+```tsx
+<RecipientOption initials="AK" name="Amara Khan" meta="Account ending 4821" selected onClick={...} />
+<AddRecipient onClick={...} />
+```
+
+- Two separate exports from the same folder (they're visually and semantically distinct, unlike Quick Send Item's two `kind`s which share a layout).
+- `RecipientOption`'s `selected` toggles `border-brand` + `bg-brand-muted`; default rests on `bg-surface-muted` with no border — border is reserved for the selected state, not decoration.
+- `AddRecipient` is a **static affordance only** — its `onClick` prop exists for completeness but there is no real add-recipient flow. Don't build one unless explicitly asked.
+
+### Amount Input (`src/design-system/components/AmountInput`)
+
+```tsx
+<AmountInput value={amount} onChange={(e) => setAmount(e.target.value)} helperText="Available balance: $12,480.50" />
+```
+
+- A real, controlled `<input>` (not a styled `<div>`) — extends native input props, so `value`/`onChange`/`defaultValue` all work normally.
+- Uses the new `Display XL` (48/56) text style for the value and `Display` (32/40, muted) for the `$` prefix — this is the one place in the design system that size is used.
+- No border/background chrome by design — it reads as an input via size and placement, not a boxed field. Don't add a border "to make it clearer it's an input."
+
+### Total Block (`src/design-system/components/TotalBlock`)
+
+```tsx
+<TotalBlock total="$250.00" onBreakdownClick={() => setShowBreakdown(true)} />
+```
+
+- Composes `Button` (`variant="link"`) for "Breakdown" — this is the reference example for when to reach for the Link button variant: an inline text CTA next to other content, not a standalone action.
+- Single `total` string prop, not separate amount/fee values — this component replaced an earlier Amount/Fee/Total summary card design; it intentionally only shows the final number plus a link to a (not-yet-built) breakdown detail view.
+
+Known component list (from Figma) — all built:
 - [x] Button — Primary/Secondary/Ghost/Link × Default/Hover/Loading/Disabled
 - [x] Input — Default/Focus/Error/Disabled
 - [x] Badge — Kind (Success/Warning/Error/Neutral) × Style (Pill/Quiet)
 - [x] Card — Elevated/Flat/Spotlight
 - [x] Avatar
 - [x] Transaction Row
-- [ ] Quick Send Item
-- [ ] Recipient Option / Add Recipient
-- [ ] Amount Input
-- [ ] Total Block
+- [x] Quick Send Item
+- [x] Recipient Option / Add Recipient
+- [x] Amount Input
+- [x] Total Block
 
 ## Established design decisions worth knowing
 
