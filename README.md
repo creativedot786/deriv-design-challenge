@@ -1,6 +1,6 @@
-# Build With AI — Money Transfer
+# RemitOne
 
-> A focused money-transfer web app (Dashboard → Send Money → Success), designed and built as a design-system-driven challenge submission.
+> A money transfer experience designed to simplify remittances and local transfers through a unified fintech wallet.
 
 **Live URL:** [deriv-design-challenge-a7ywtuaoh.vercel.app](https://deriv-design-challenge-a7ywtuaoh.vercel.app)
 **Figma file:** _TODO — paste the shareable Figma link here_
@@ -10,11 +10,48 @@
 
 ## The problem
 
-A money transfer journey for an invented fintech product, **"Build With AI"** — Dashboard → Send Money → Success. I scoped to one coherent journey rather than a scattered set of screens, on the theory that a single polished flow demonstrates a design system better than three shallow ones.
+Living in the UAE, I've noticed that sending money abroad is a routine task for a large portion of the population. Since exchange rates and transfer fees vary across providers, many people keep multiple remittance apps installed just to compare rates before making a transfer.
 
-**Dashboard** carries the weight of "at a glance" fintech UX: balance, quick actions, recent activity. **Send Money** is the one task users actually come back for — a 2-step modal (choose recipient → enter amount) rather than a full-page flow, since a transfer is a focused, interruptible task, not a destination. **Success** closes the loop with a receipt, because a transfer isn't done until the user has proof it happened.
+Once the best option is found, users still need to switch between apps, authenticate through their bank, and complete the payment journey. The experience feels fragmented and takes more effort than it should.
 
-"Premium modern fintech" here meant restraint: one dark "Spotlight" surface for the single most important number (the balance), shadow-based elevation instead of borders everywhere, and a quiet, date-grouped transaction list instead of a bordered data table. That direction came out of an explicit design-critique pass mid-project — the first version was correct but "boxy," and fixing that took more editorial judgment than component-building.
+The idea behind RemitOne is to bring this experience together into a single app. Instead of switching between multiple remittance providers, users can connect their provider accounts, compare available rates in one place, choose the best option for their transfer, and send money through a pre-funded wallet topped up using their debit card or Apple Pay.
+
+The goal is simple: make sending money faster, easier, and more transparent.
+
+For this challenge, I intentionally focused on the core journey:
+
+**Dashboard → Send Money → Success**
+
+Rather than designing multiple disconnected screens, I wanted to demonstrate a complete user flow supported by a scalable design system.
+
+From a design perspective, I kept the experience simple and focused. Sending money is the primary purpose of the product, so every decision was made to reduce friction, improve clarity, and help users complete the task confidently.
+
+## Design approach
+
+The direction for RemitOne was based on creating a trustworthy fintech experience with minimal distractions.
+
+The interface prioritizes:
+
+- Clear financial information hierarchy
+- Fast access to primary actions
+- Simple transfer flow
+- Strong visual feedback
+- Reusable design patterns
+
+The dashboard focuses on "at a glance" information:
+
+- Available balance
+- Quick actions
+- Recent transactions
+
+The Send Money experience was designed as a focused interaction rather than a long multi-page journey. The transfer flow is broken into simple steps:
+
+1. Select recipient
+2. Enter amount
+3. Confirm transfer
+4. Receive confirmation
+
+The success state completes the journey by providing confirmation and transaction details, giving users confidence that the transfer was completed.
 
 ## Design system structure
 
@@ -32,11 +69,12 @@ A money transfer journey for an invented fintech product, **"Build With AI"** �
 
 Every value a component needs — color, spacing, radius, shadow, type — comes from a token. Screens only ever import components, never reach past them into raw tokens (aside from layout-only gaps, which still use spacing tokens). See [AGENTS.md](./AGENTS.md) for the full token/component reference and the specific rules an AI coding tool should follow in this repo.
 
-**Folder structure:**
+## Folder structure
+
 ```
 src/
   design-system/
-    tokens/       # color, spacing, radius, elevation, typography
+    tokens/       # color, spacing, radius, elevation, typography — defined once
     components/   # 14 components, one folder each
   screens/        # Dashboard, SendMoneyModal, SuccessModal
   mocks/          # typed mock data (recipients, transactions, user)
@@ -44,58 +82,64 @@ src/
 
 ## AI workflow
 
-Built end-to-end with **Claude Code**, across three phases: Figma (design system + screens, via Figma's MCP integration), then code (this repo). I drove it as a design lead + tech lead would — reviewing every artifact before the next phase started, not just accepting first-pass output.
+I used Claude throughout the entire project, from initial design exploration to final implementation.
 
-**Where it helped:**
-- Translating an agreed HTML/CSS review artifact 1:1 into real Figma variables, text styles, and components — tedious, mechanical work that's easy to get subtly wrong by hand, and easy to verify by screenshot when AI does it
-- Catching its own mistakes when I asked for an audit — repeatedly, not once. Discrepancies found across the project: unbound default fills on layout wrapper frames (Figma defaults to a white fill that isn't a token binding), a `textStyleId` binding order bug (setting the style before the text content silently drops the link), frames landing on the wrong Figma page because page context resets between plugin calls, and a component-clone bug where cloning a variant stripped its property reference (so a "Link" button variant rendered the wrong label regardless of what was passed in)
-- In code: building consistent, typed components quickly, and — critically — improving on the Figma source where the design had a real bug rather than blindly porting it (see below)
+The challenge required creating the design system and screens in Figma before moving into development. Instead of starting from a blank canvas, I collaborated with Claude to define the product direction, information architecture, design tokens, component inventory, and screen structure.
 
-**Where it failed and how I fixed it:**
-- **Transaction status color was hardcoded green in Figma** — the "Status" property was plain text bound to a single color, so a "Failed" row would still render green. I didn't port this to code; `TransactionRow.status` is properly typed as `BadgeKind` and composes the real `Badge` component, so color always matches the value.
-- **`AmountInput` accepted arbitrary text** — `inputMode="decimal"` only hints the mobile keyboard, it doesn't block keystrokes. Caught by manually typing letters into the field, not by any automated check; fixed with an explicit sanitizer.
-- **`Skeleton` collapsed to 0×0 inside `Card`** — it rendered as a bare `<span>` (inline by default), so explicit `width`/`height` were silently ignored unless the parent happened to be flex/grid (which blockifies children). Only visible by actually looking at the loading state in a browser, not from the code alone.
-- **A layout centering bug**: `display: flex` + `justify-content: center` on a wrapper fought with `margin-inline: auto` on its capped child, so a "centered, max-width 1440px" layout was silently rendering left-aligned. Confirmed with `getBoundingClientRect()` math, not just eyeballing a screenshot.
-- Two claimed timing issues turned out to be tooling latency, not bugs — a loading state I couldn't "catch" in a screenshot was actually resolving correctly; the round trip between issuing a browser action and seeing its result exceeded the delay I was testing against. Worth knowing if you extend the loading logic: verify with a deliberately long delay first, then dial it back down.
+Once the direction was established, I created the design system and screens in Figma, including reusable components, variables, and styles. I reviewed and refined each stage before moving into implementation.
+
+After completing the design phase, I used Claude again as an engineering partner to build the frontend experience. Claude helped scaffold the project, implement the design token architecture, create reusable React components, and translate the Figma designs into a working product.
+
+Throughout the process, I treated AI as a collaborator rather than an autopilot. I reviewed outputs, refined prompts, challenged decisions, and validated the implementation against the original design direction.
+
+AI was especially useful for accelerating repetitive tasks, maintaining consistency across components, and reviewing the implementation for potential issues.
+
+However, some problems could only be discovered through real interaction with the product. During testing, I identified and fixed issues around input validation, component behaviour, layout alignment, and UI states. These improvements came through manual review and iteration rather than blindly accepting AI-generated output.
+
+Using AI across both design and development allowed me to spend more time focusing on product decisions, usability, and creating a more polished experience.
 
 ## What I'd do with more time
 
-- Wire up a real "Add recipient" flow (currently a static, intentionally non-functional affordance)
-- Build out the "Breakdown" detail view behind Total Block's link (currently just logs a click)
-- A real accessibility pass — semantic landmarks, full keyboard-nav audit of the modal's focus trap, and a contrast re-check now that the premium redesign's dark Spotlight card is in the mix
-- Dark mode, purely via token swap (the token architecture was built two-tier specifically so this would be additive, not a rewrite)
-- A second extended screen (e.g. Activity/transaction history) reusing the system with zero new one-off styles
-- Basic test coverage — component unit tests at minimum, ideally a visual regression pass given how many of the bugs above were only visible by actually rendering the UI
+This challenge was intentionally scoped to demonstrate the design system and the core money transfer journey. Given more time, I would first validate the concept with users before expanding the product.
+
+The next areas I would explore:
+
+- Provider onboarding and account connection flow
+- Wallet funding experience
+- Recipient management
+- Exchange rate comparison
+- Transfer tracking
+- Transaction history
+- Notifications
+- Error and edge cases
+
+From a design system perspective, I would continue expanding the component library, improve documentation, introduce dark mode through the existing token architecture, complete a full accessibility audit, and add automated testing.
+
+The current version focuses on proving the core experience and establishing a scalable foundation. With additional time, I would evolve RemitOne into a complete production-ready remittance platform based on user feedback and validation.
 
 ## Based on an existing product?
 
-Not based on one specific product — "Build With AI" is invented. It borrows conventions common across the category (Mercury, Wise, Cash App-style balance-first dashboards, grouped transaction history, a dark "hero" surface for the primary number) rather than copying any single app's specific screens.
+No. RemitOne is an original concept inspired by a real problem I have observed while living in the UAE, where comparing exchange rates across multiple remittance providers is a common part of sending money internationally.
 
----
+The product borrows familiar fintech patterns such as balance-first dashboards, transaction history, and streamlined transfer flows, but it is not based on any single existing application.
+
+The goal was to explore how a unified remittance wallet could simplify today's fragmented money transfer experience.
 
 ## Tech stack
 
 - React + TypeScript + Vite
-- Design tokens as CSS custom properties (`src/design-system/tokens`)
-- CSS Modules for component styling (no CSS-in-JS, no component library)
-- All data mocked — no backend, no auth, no real APIs
+- CSS custom properties for design tokens
+- CSS Modules for component styling
+- Claude Code for AI-assisted development
+- Figma for design system and interface design
+
+All data is mocked. No backend, authentication, or real payment APIs are connected.
 
 ## Running locally
 
 ```bash
 npm install
 npm run dev
-```
-
-## Project structure
-
-```
-src/
-  design-system/
-    tokens/       # color, spacing, radius, elevation, typography — defined once
-    components/   # Button, Input, Badge, Card, and composed patterns
-  screens/        # Dashboard, Send Money (modal), Success (modal)
-  mocks/          # mock data for screens
 ```
 
 See [AGENTS.md](./AGENTS.md) for rules on how an AI coding tool should use this design system.

@@ -44,7 +44,7 @@ export function Dashboard({ onSendMoneyClick }: DashboardProps) {
             <span className={styles.logo}>
               <LogoIcon />
             </span>
-            <span className={`ds-text-label ${styles.brandName}`}>Build With AI</span>
+            <span className={`ds-text-label ${styles.brandName}`}>RemitOne</span>
           </div>
 
           <nav className={styles.sidebarNav}>
