@@ -8,7 +8,27 @@
 .page {
   min-height: 100vh;
   background: var(--bg-canvas);
+}
+
+/* Caps the whole layout at 1440px with a 40px gutter on very wide
+   screens, instead of the sidebar+content stretching/left-aligning
+   edge to edge. 40px is an explicit spec value, not on the 4px
+   spacing scale (nearest tokens are space-6/32 and space-7/48) —
+   used as a literal here rather than forced into the nearest token,
+   same treatment as the Display XL exception. */
+.pageInner {
+  width: 100%;
+  max-width: 1440px;
+  margin-inline: auto;
+  padding-inline: 40px;
   display: flex;
+  gap: var(--space-6);
+}
+
+@media (max-width: 860px) {
+  .pageInner {
+    padding-inline: 0;
+  }
 }
 
 .sidebar {
@@ -22,7 +42,13 @@
     gap: var(--space-6);
     width: 220px;
     flex-shrink: 0;
-    padding: var(--space-7) 0 var(--space-7) var(--space-7);
+    /* A contained card, not a full-height, edge-to-edge panel. */
+    align-self: flex-start;
+    background: var(--bg-surface);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    padding: var(--space-6) var(--space-5);
+    margin-block: var(--space-6);
   }
 }
 
@@ -83,7 +109,6 @@
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  margin-top: auto;
 }
 
 .sidebarFooterMid {
@@ -106,7 +131,6 @@
 @media (min-width: 860px) {
   .main {
     padding: var(--space-7);
-    max-width: 720px;
   }
 }
 
