@@ -1,0 +1,46 @@
+.skeleton {
+  /* Block-level so width/height always apply — as a bare <span> (inline
+     by default), explicit width/height are silently ignored unless the
+     parent happens to be flex/grid (which blockifies children). Caught
+     this exact bug: Skeletons inside Card (a plain block) collapsed to
+     0x0 while ones inside a flex row rendered fine. */
+  display: block;
+  /* bg-surface-muted (used elsewhere for quiet fills) was too close to
+     bg-canvas/bg-surface to read as a visible placeholder — border-strong
+     gives enough contrast against a white/canvas background. */
+  background: var(--border-strong);
+  border-radius: var(--radius-md);
+  position: relative;
+  overflow: hidden;
+}
+
+/* For placement on a dark surface (e.g. inside the Spotlight card) —
+   the default tone would be invisible against bg-inverse. */
+.inverse {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.7), transparent);
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+
+.inverse::after {
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton::after {
+    animation: none;
+  }
+}
