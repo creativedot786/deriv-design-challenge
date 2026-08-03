@@ -49,9 +49,23 @@ Naming matches Figma exactly (Figma `bg/brand-muted` → CSS `--bg-brand-muted`)
 - Tokens: `--bg-brand`, `--bg-surface`, `--bg-brand-muted`, `--bg-surface-muted`, `--text-inverse`, `--text-brand`, `--text-disabled`, `--border-brand`, `--border-secondary`, `--radius-md`, `--space-2/3/5`, `--shadow-sm/md`, `.ds-text-label`.
 - **Do**: `<Button variant="link">Change</Button>` for an inline text CTA. **Don't**: reach for `variant="ghost"` with custom inline padding overrides to fake a link — use `variant="link"`, it exists for exactly this.
 
+### Input (`src/design-system/components/Input`)
+
+```tsx
+<Input label="Amount" helperText="Available balance: $12,480.50" />
+<Input label="Amount" errorText="Exceeds available balance" />
+```
+
+- `label` (required), `helperText`, `errorText` — passing `errorText` puts the field in its error state (red border/text) and takes priority over `helperText` if both are somehow passed; don't pass both intentionally.
+- Focus and Disabled are native (`:focus`, `disabled` prop) — no separate props needed for those.
+- `id` is generated internally via `useId()` and wired to the label (`htmlFor`) and helper/error text (`aria-describedby`) automatically — don't pass your own `id`, the type deliberately omits it.
+- Extends native `<input>` props (`value`, `onChange`, `type`, `placeholder`, etc.).
+- Tokens: `--bg-surface`, `--bg-surface-muted`, `--border-primary`, `--border-brand`, `--border-error`, `--border-secondary`, `--text-primary`, `--text-secondary`, `--text-muted`, `--text-error`, `--text-disabled`, `--radius-md`, `--space-2/3/4`, `.ds-text-label` (field label), `.ds-text-body-lg` (value), `.ds-text-caption` (helper/error).
+- Note: the field label uses the `Label` text style (14px), not a bespoke 13px size that appeared in the original HTML mockup — reusing an existing type-scale entry rather than introducing a new one-off size.
+
 Known component list (from Figma), in build order:
 - [x] Button — Primary/Secondary/Ghost/Link × Default/Hover/Loading/Disabled
-- [ ] Input — Default/Focus/Error/Disabled
+- [x] Input — Default/Focus/Error/Disabled
 - [ ] Badge — Kind (Success/Warning/Error/Neutral) × Style (Pill/Quiet)
 - [ ] Card — Elevated/Flat/Spotlight
 - [ ] Avatar
