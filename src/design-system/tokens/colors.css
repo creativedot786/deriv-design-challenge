@@ -64,4 +64,11 @@
   --border-success: var(--success-500);
   --border-warning: var(--warning-500);
   --border-error: var(--error-500);
+
+  /* ---------- Semantic — Overlay ----------
+   * New in M4: not part of the original Figma Foundations (there was no
+   * modal in that pass — Send Money/Success were full screens). Needed
+   * now that they're modals. ink-900 at 50% alpha, not a new primitive.
+   */
+  --overlay-scrim: rgba(15, 23, 42, 0.5);
 }
