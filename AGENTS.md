@@ -172,6 +172,28 @@ Known component list (from Figma) — all built:
 - [x] Amount Input
 - [x] Total Block
 
+### Modal (`src/design-system/components/Modal`)
+
+Not part of the original Figma component list — added in M4 because Send Money and Success were converted from full screens to modals after Figma was otherwise locked. Uses a new `--overlay-scrim` token (`colors.css`), the only token added post-Figma.
+
+```tsx
+<Modal isOpen={isOpen} onClose={onClose} label="Send money">
+  {/* content */}
+</Modal>
+```
+
+- `label` sets the accessible name (`aria-label`) — always pass a real label, not "Modal".
+- Handles Escape-to-close, click-on-backdrop-to-close (not click-inside-panel), focuses the panel on open, and locks body scroll while open. All in the component — don't re-implement any of this in a screen that uses Modal.
+- Renders inline (no `createPortal`) — acceptable at this app's scale since nothing in the tree uses `overflow: hidden`/`transform` that would break `position: fixed`. If a future ancestor introduces one, this will need a portal.
+- Content composition (header, steps, actions) is entirely up to the consumer — Modal only owns the overlay/panel/dismissal behavior.
+
+## Screens (`src/screens`)
+
+- **Dashboard** — one responsive component, not separate mobile/desktop components. Sidebar nav and header CTA appear via `@media (min-width: 860px)`; bottom nav and full-width CTA are the mobile default. This 860px breakpoint is the one used consistently for the app-shell switch — don't introduce a second, different breakpoint elsewhere for the same kind of decision.
+- **SendMoneyModal** — owns its own 2-step state (`'recipient' | 'amount'`) internally; parent (`App.tsx`) only knows whether the modal is open and receives an `onComplete({ recipientName, amount })` callback when the user hits Send. Resets to step 1 every time it's reopened (via a `useEffect` keyed on `isOpen`) — don't remove that, or a second transfer will silently resume on the previous recipient/amount.
+- **SuccessModal** — purely presentational, takes `recipientName`/`amount` as props from whatever `SendMoneyModal.onComplete` produced. Date/time are computed live (`new Date()`), not mocked — this is one of the few non-mocked pieces of data in the app, and that's intentional (a receipt's timestamp should reflect when it happened).
+- Recipients used in Quick Send and the Send Money recipient list come from **one shared mock array** (`src/mocks/recipients.ts`, filtered by `isFrequent`) — this is a deliberate architectural fix for a data-consistency bug that existed in the Figma/HTML passes, where Quick Send and the full recipient list were separate hand-maintained lists that drifted out of sync. Don't reintroduce two separate recipient lists.
+
 ## Established design decisions worth knowing
 
 These aren't obvious from the code alone — they came out of an explicit design review pass and shouldn't be "corrected" back to a more conventional pattern:

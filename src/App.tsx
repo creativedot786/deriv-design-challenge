@@ -1,11 +1,36 @@
+import { useState } from 'react'
+import { Dashboard } from './screens/Dashboard'
+import { SendMoneyModal } from './screens/SendMoneyModal'
+import { SuccessModal } from './screens/SuccessModal'
+
+type ActiveModal = 'sendMoney' | 'success' | null
+
 function App() {
+  const [activeModal, setActiveModal] = useState<ActiveModal>(null)
+  const [completedTransfer, setCompletedTransfer] = useState<{ recipientName: string; amount: string } | null>(
+    null,
+  )
+
   return (
-    <main style={{ padding: 'var(--space-6)' }}>
-      <p className="ds-text-h1">Build With AI</p>
-      <p className="ds-text-body" style={{ color: 'var(--text-muted)' }}>
-        Design system and screens land in upcoming milestones.
-      </p>
-    </main>
+    <>
+      <Dashboard onSendMoneyClick={() => setActiveModal('sendMoney')} />
+
+      <SendMoneyModal
+        isOpen={activeModal === 'sendMoney'}
+        onClose={() => setActiveModal(null)}
+        onComplete={(details) => {
+          setCompletedTransfer(details)
+          setActiveModal('success')
+        }}
+      />
+
+      <SuccessModal
+        isOpen={activeModal === 'success'}
+        onClose={() => setActiveModal(null)}
+        recipientName={completedTransfer?.recipientName ?? ''}
+        amount={completedTransfer?.amount ?? ''}
+      />
+    </>
   )
 }
 
