@@ -63,10 +63,22 @@ Naming matches Figma exactly (Figma `bg/brand-muted` → CSS `--bg-brand-muted`)
 - Tokens: `--bg-surface`, `--bg-surface-muted`, `--border-primary`, `--border-brand`, `--border-error`, `--border-secondary`, `--text-primary`, `--text-secondary`, `--text-muted`, `--text-error`, `--text-disabled`, `--radius-md`, `--space-2/3/4`, `.ds-text-label` (field label), `.ds-text-body-lg` (value), `.ds-text-caption` (helper/error).
 - Note: the field label uses the `Label` text style (14px), not a bespoke 13px size that appeared in the original HTML mockup — reusing an existing type-scale entry rather than introducing a new one-off size.
 
+### Badge (`src/design-system/components/Badge`)
+
+```tsx
+<Badge kind="success">Completed</Badge>              {/* Quiet — default, in-context */}
+<Badge kind="success" variant="pill">Completed</Badge> {/* Pill — standalone emphasis only */}
+```
+
+- `kind`: `'success' | 'warning' | 'error' | 'neutral'` (required, no default — always be explicit about status)
+- `variant`: `'quiet' | 'pill'`, default `'quiet'`. Quiet is dot + colored text, no container — use it for transaction rows and any in-context status. Pill adds the filled rounded background — reserve it for a single standalone status line (e.g. the Success screen), not for lists.
+- Tokens: `--text-success/warning/error/secondary`, `--border-success/warning/error` (reused for the dot color — semantic, not the raw `success-500` primitive), `--text-muted` (neutral dot), `--bg-*-muted` (pill background), `--radius-full`, `--space-1/2`, `.ds-text-caption`.
+- **Do not** add a 5th `kind` or reach for a raw primitive color for a new status — extend the semantic token set in `colors.css` first if a genuinely new status is needed.
+
 Known component list (from Figma), in build order:
 - [x] Button — Primary/Secondary/Ghost/Link × Default/Hover/Loading/Disabled
 - [x] Input — Default/Focus/Error/Disabled
-- [ ] Badge — Kind (Success/Warning/Error/Neutral) × Style (Pill/Quiet)
+- [x] Badge — Kind (Success/Warning/Error/Neutral) × Style (Pill/Quiet)
 - [ ] Card — Elevated/Flat/Spotlight
 - [ ] Avatar
 - [ ] Transaction Row

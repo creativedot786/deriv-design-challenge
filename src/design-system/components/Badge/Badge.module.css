@@ -1,0 +1,61 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* Pill adds the filled, rounded container — reserved for standalone
+   emphasis (e.g. a single status line). Quiet (no extra class) is the
+   default: just the dot + colored text, for in-context status like a
+   transaction row. */
+.pill {
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-full);
+}
+
+.success {
+  color: var(--text-success);
+}
+.success .dot {
+  background: var(--border-success);
+}
+.pill.success {
+  background: var(--bg-success-muted);
+}
+
+.warning {
+  color: var(--text-warning);
+}
+.warning .dot {
+  background: var(--border-warning);
+}
+.pill.warning {
+  background: var(--bg-warning-muted);
+}
+
+.error {
+  color: var(--text-error);
+}
+.error .dot {
+  background: var(--border-error);
+}
+.pill.error {
+  background: var(--bg-error-muted);
+}
+
+.neutral {
+  color: var(--text-secondary);
+}
+.neutral .dot {
+  background: var(--text-muted);
+}
+.pill.neutral {
+  background: var(--bg-surface-muted);
+}
