@@ -149,6 +149,7 @@ Naming matches Figma exactly (Figma `bg/brand-muted` → CSS `--bg-brand-muted`)
 - A real, controlled `<input>` (not a styled `<div>`) — extends native input props, so `value`/`onChange`/`defaultValue` all work normally.
 - Uses the new `Display XL` (48/56) text style for the value and `Display` (32/40, muted) for the `$` prefix — this is the one place in the design system that size is used.
 - No border/background chrome by design — it reads as an input via size and placement, not a boxed field. Don't add a border "to make it clearer it's an input."
+- **Sanitizes input to digits + one decimal point internally** (`sanitizeAmount`, wraps the `onChange` prop before forwarding it). `inputMode="decimal"` alone only hints the mobile keyboard — it does not block typed characters — so without this a user could type `"asa9.9.9abc"` and it would just render as-is. Caught during manual testing, not something a type-checker or build would catch. If you touch this component, keep it a real `<input type="text">` with this sanitizer, not `type="number"` (which has its own, worse set of UX quirks for currency input — spinner arrows, silently clamping invalid states, locale-dependent decimal separators).
 
 ### Total Block (`src/design-system/components/TotalBlock`)
 
