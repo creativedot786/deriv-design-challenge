@@ -2,9 +2,9 @@
 
 > A money transfer experience designed to simplify remittances and local transfers through a unified fintech wallet.
 
-**Live URL:** [deriv-design-challenge-a7ywtuaoh.vercel.app](https://deriv-design-challenge-a7ywtuaoh.vercel.app)
-**Figma file:** _TODO — paste the shareable Figma link here_
-**Loom walkthrough (max 5 min):** _TODO — paste the Loom link here_
+**Live URL:** [RemitOne App](https://deriv-design-challenge-a7ywtuaoh.vercel.app)
+**Figma file:** [View Figma File](https://www.figma.com/design/ioTezlsLTr0RdbLAhgOMAP/DS-Test?node-id=26-53&t=uQJHF4Ox4MOPDyPb-1)
+**Loom walkthrough:** [View Walkthrough](https://www.loom.com/share/e0617aec3df647458dd91f74cd672bb5)
 
 ---
 
