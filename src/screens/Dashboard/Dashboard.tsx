@@ -57,7 +57,6 @@ export function Dashboard({ onSendMoneyClick }: DashboardProps) {
                 Send money
               </Button>
             </div>
-            <Avatar initials={currentUser.initials} size={40} />
           </div>
 
           <Card variant="spotlight">
