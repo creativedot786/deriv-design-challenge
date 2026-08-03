@@ -1,4 +1,13 @@
-import { Avatar, Button, Card, QuickSendItem, TransactionRow } from '../../design-system/components'
+import { useEffect, useState } from 'react'
+import {
+  Avatar,
+  Button,
+  Card,
+  EmptyState,
+  QuickSendItem,
+  Skeleton,
+  TransactionRow,
+} from '../../design-system/components'
 import { currentUser } from '../../mocks/user'
 import { frequentRecipients } from '../../mocks/recipients'
 import { transactions, groupTransactionsByDate } from '../../mocks/transactions'
@@ -9,8 +18,23 @@ export interface DashboardProps {
   onSendMoneyClick: () => void
 }
 
+const InboxIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M22 12h-6l-2 3h-4l-2-3H2" />
+    <path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z" />
+  </svg>
+)
+
 export function Dashboard({ onSendMoneyClick }: DashboardProps) {
+  const [isLoading, setIsLoading] = useState(true)
   const groups = groupTransactionsByDate(transactions)
+
+  // Simulates the initial data fetch — no backend, but the loading
+  // state itself is real (not just a prop you can toggle).
+  useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 900)
+    return () => clearTimeout(timer)
+  }, [])
 
   return (
     <div className={styles.page}>
@@ -59,15 +83,25 @@ export function Dashboard({ onSendMoneyClick }: DashboardProps) {
             </div>
           </div>
 
-          <Card variant="spotlight">
-            <p className="ds-text-caption" style={{ color: 'var(--text-inverse-muted)' }}>
-              Available balance
-            </p>
-            <p className="ds-text-display">{currentUser.balance}</p>
-            <p className="ds-text-caption" style={{ color: 'var(--text-inverse-muted)' }}>
-              {currentUser.balanceUpdatedLabel}
-            </p>
-          </Card>
+          {isLoading ? (
+            <Card variant="spotlight">
+              <Skeleton inverse width={120} height={12} />
+              <div style={{ height: 8 }} />
+              <Skeleton inverse width={200} height={32} />
+              <div style={{ height: 8 }} />
+              <Skeleton inverse width={100} height={12} />
+            </Card>
+          ) : (
+            <Card variant="spotlight">
+              <p className="ds-text-caption" style={{ color: 'var(--text-inverse-muted)' }}>
+                Available balance
+              </p>
+              <p className="ds-text-display">{currentUser.balance}</p>
+              <p className="ds-text-caption" style={{ color: 'var(--text-inverse-muted)' }}>
+                {currentUser.balanceUpdatedLabel}
+              </p>
+            </Card>
+          )}
 
           <div className={styles.mobileCta}>
             <Button variant="primary" fullWidth onClick={onSendMoneyClick}>
@@ -77,32 +111,61 @@ export function Dashboard({ onSendMoneyClick }: DashboardProps) {
 
           <div className={styles.section}>
             <p className="ds-text-h2">Quick send</p>
-            <div className={styles.quickSendRow}>
-              {frequentRecipients.map((r) => (
-                <QuickSendItem key={r.id} kind="person" initials={r.initials} name={r.name.split(' ')[0]} />
-              ))}
-              <QuickSendItem kind="add" />
-            </div>
+            {isLoading ? (
+              <div className={styles.quickSendRow}>
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <Skeleton key={i} width={48} height={48} circle />
+                ))}
+              </div>
+            ) : (
+              <div className={styles.quickSendRow}>
+                {frequentRecipients.map((r) => (
+                  <QuickSendItem key={r.id} kind="person" initials={r.initials} name={r.name.split(' ')[0]} />
+                ))}
+                <QuickSendItem kind="add" />
+              </div>
+            )}
           </div>
 
           <div className={styles.section}>
             <p className="ds-text-h2">Recent transactions</p>
-            {[...groups.entries()].map(([dateGroup, items]) => (
-              <div key={dateGroup} className={styles.txGroup}>
-                <span className={`ds-text-caption ${styles.txGroupLabel}`}>{dateGroup}</span>
-                {items.map((t) => (
-                  <TransactionRow
-                    key={t.id}
-                    name={t.name}
-                    meta={t.meta}
-                    amount={t.amount}
-                    direction={t.direction}
-                    status={t.status}
-                    statusLabel={t.statusLabel}
-                  />
+            {isLoading ? (
+              <div className={styles.txGroup}>
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', padding: 'var(--space-3) var(--space-2)' }}>
+                    <Skeleton width={40} height={40} circle />
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 'var(--space-1)' }}>
+                      <Skeleton width="60%" height={14} />
+                      <Skeleton width="30%" height={12} />
+                    </div>
+                    <Skeleton width={60} height={14} />
+                  </div>
                 ))}
               </div>
-            ))}
+            ) : groups.size === 0 ? (
+              <EmptyState
+                icon={<InboxIcon />}
+                title="No transactions yet"
+                subtext="Your recent transfers will show up here."
+              />
+            ) : (
+              [...groups.entries()].map(([dateGroup, items]) => (
+                <div key={dateGroup} className={styles.txGroup}>
+                  <span className={`ds-text-caption ${styles.txGroupLabel}`}>{dateGroup}</span>
+                  {items.map((t) => (
+                    <TransactionRow
+                      key={t.id}
+                      name={t.name}
+                      meta={t.meta}
+                      amount={t.amount}
+                      direction={t.direction}
+                      status={t.status}
+                      statusLabel={t.statusLabel}
+                    />
+                  ))}
+                </div>
+              ))
+            )}
           </div>
         </main>
       </div>
