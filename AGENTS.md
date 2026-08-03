@@ -22,7 +22,15 @@ Instructions for any AI coding tool (Claude Code, Cursor, Codex, etc.) working i
 
 ## Token reference
 
-_TODO — fill in once `src/design-system/tokens` is built (Phase 2 milestone M2). Should list every token file and its contents, matching the Foundations page in Figma: color (primitive + semantic), spacing, radius, elevation, typography._
+All tokens live in `src/design-system/tokens/`, imported once via `index.css` (already wired into `main.tsx` — never import a token file directly from a component). One file per category:
+
+- **`colors.css`** — two-tier: primitives (`--ink-*`, `--brand-*`, `--success-*`, `--warning-*`, `--error-*`) and semantic tokens that alias them (`--text-*`, `--bg-*`, `--border-*`). Bind to semantic tokens only.
+- **`spacing.css`** — `--space-1` through `--space-8` (4px base scale, 4–64px).
+- **`radius.css`** — `--radius-sm/md/lg/full`.
+- **`elevation.css`** — `--shadow-sm`, `--shadow-md`. Default separation technique — see "Established design decisions" below.
+- **`typography.css`** — `--font-family-base` (Inter, loaded via `@fontsource/inter` in `main.tsx`, weights 400/500/600) plus size/line-height/weight variables per text style, each with a ready-to-use utility class: `.ds-text-display-xl`, `.ds-text-display`, `.ds-text-h1`, `.ds-text-h2`, `.ds-text-body-lg`, `.ds-text-body`, `.ds-text-caption`, `.ds-text-label`. Prefer the class over reassembling the variables — it's what components should apply directly to text elements.
+
+Naming matches Figma exactly (Figma `bg/brand-muted` → CSS `--bg-brand-muted`) so token and design file can be cross-referenced without translation.
 
 ## Component API reference
 

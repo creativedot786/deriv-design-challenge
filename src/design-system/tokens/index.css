@@ -1,0 +1,11 @@
+/**
+ * Design tokens — single entry point. Import this once (in main.tsx)
+ * and every component/screen gets the full token set as CSS custom
+ * properties + the ds-text-* typography utility classes.
+ */
+
+@import './colors.css';
+@import './spacing.css';
+@import './radius.css';
+@import './elevation.css';
+@import './typography.css';
