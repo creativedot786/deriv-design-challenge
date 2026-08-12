@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
-import { useOutletContext } from 'react-router-dom'
+import { useNavigate, useOutletContext } from 'react-router-dom'
 import {
   Button,
   Card,
@@ -86,6 +86,7 @@ const TEASER_AMOUNT_AED = 200
  */
 export function Dashboard() {
   const { onSendMoneyClick, onCheckRatesClick, beneficiaries, providers } = useOutletContext<AppOutletContext>()
+  const navigate = useNavigate()
   const [isLoading, setIsLoading] = useState(true)
 
   // Simulates the initial data fetch — no backend, but the loading
@@ -172,7 +173,9 @@ export function Dashboard() {
             <p className="ds-text-caption" style={{ color: 'var(--text-inverse-muted)' }}>
               + AED {wallet.cashbackEarnedAed.toFixed(2)} cashback earned
             </p>
-            <Button variant="secondary">Add money</Button>
+            <Button variant="secondary" className={styles.walletCta}>
+              Add money
+            </Button>
           </Card>
         )}
 
@@ -235,7 +238,7 @@ export function Dashboard() {
               AED {lastTransfer.amountAed.toFixed(2)} → {lastCorridor.currencySymbol}
               {lastQuote.recipientReceives.toFixed(2)}
             </p>
-            <Button variant="secondary" onClick={handleRepeat}>
+            <Button variant="secondary" onClick={handleRepeat} className={styles.repeatCta}>
               Repeat transfer
             </Button>
           </Card>
@@ -253,18 +256,23 @@ export function Dashboard() {
             </div>
           ) : (
             <div className={styles.quickSendRow}>
-              {favoriteBeneficiaries.map((b) => (
-                <QuickSendItem
-                  key={b.id}
-                  kind="person"
-                  initials={b.initials}
-                  name={b.name.split(' ')[0]}
-                  onClick={() => onSendMoneyClick({ beneficiaryId: b.id })}
-                />
-              ))}
-              <QuickSendItem kind="add" />
+              {favoriteBeneficiaries.map((b) => {
+                const c = corridors.find((corr) => corr.id === b.corridorId)!
+                return (
+                  <QuickSendItem
+                    key={b.id}
+                    initials={b.initials}
+                    name={b.name.split(' ')[0]}
+                    flag={c.flag}
+                    onClick={() => onSendMoneyClick({ beneficiaryId: b.id })}
+                  />
+                )
+              })}
             </div>
           )}
+          <Button variant="secondary" className={styles.quickSendCta} onClick={() => navigate('/beneficiaries')}>
+            Add beneficiary
+          </Button>
         </Card>
       </div>
 

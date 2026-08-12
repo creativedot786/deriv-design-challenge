@@ -11,8 +11,9 @@ export interface ComparisonRowProps {
   recipientReceivesLabel: string
   rateLabel: string
   feeLabel: string
-  deliveryEtaLabel: string
-  asOfLabel: string
+  /** Omit both delivery fields for a sleeker, informational context (RateCheckerModal) — the footer line only renders when at least one is present. Send Money's real compare step still passes both; ETA matters once you're actually about to send. */
+  deliveryEtaLabel?: string
+  asOfLabel?: string
   /** "Most received" / "Fastest" / "Your usual" — quiet and factual, never more than one provider needs to "win" on the same axis. Omit if this row doesn't lead on anything. */
   rankLabel?: string
   /** Tier cashback, e.g. "+ AED 4.20 cashback". Additive to the provider's own number, never rewrites it — see the discovery doc's note on protecting the comparison's trust story. */
@@ -72,12 +73,16 @@ export function ComparisonRow({
         </span>
       </div>
 
-      <div className={styles.footer}>
-        <span className="ds-text-caption" style={{ color: 'var(--text-muted)' }}>
-          {deliveryEtaLabel} · rate as of {asOfLabel}
-        </span>
-        {cashbackLabel && isConnected && <SavingsChip>{cashbackLabel}</SavingsChip>}
-      </div>
+      {(deliveryEtaLabel || asOfLabel || (cashbackLabel && isConnected)) && (
+        <div className={styles.footer}>
+          {(deliveryEtaLabel || asOfLabel) && (
+            <span className="ds-text-caption" style={{ color: 'var(--text-muted)' }}>
+              {[deliveryEtaLabel, asOfLabel && `rate as of ${asOfLabel}`].filter(Boolean).join(' · ')}
+            </span>
+          )}
+          {cashbackLabel && isConnected && <SavingsChip>{cashbackLabel}</SavingsChip>}
+        </div>
+      )}
 
       {onAction && (
         <Button variant={isConnected ? 'primary' : 'secondary'} fullWidth onClick={onAction}>

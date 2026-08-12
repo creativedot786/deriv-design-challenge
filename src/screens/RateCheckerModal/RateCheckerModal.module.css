@@ -38,15 +38,21 @@
 
 @media (min-width: 640px) {
   .layout {
-    grid-template-columns: 280px 1fr;
+    grid-template-columns: 340px 1fr;
     align-items: start;
   }
 }
 
+/* M26 — a shaded panel instead of fields floating directly on the same
+   white as the results, so the two columns read as distinct regions at
+   a glance rather than one long row of controls bleeding into cards. */
 .controls {
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
+  background: var(--bg-surface-muted);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
 }
 
 .fields {
@@ -70,7 +76,9 @@
   width: 36px;
   height: 36px;
   border-radius: var(--radius-full);
-  background: var(--bg-surface-muted);
+  /* White, not the panel's own muted tone — needs to read as a control
+     sitting on the panel, not blend into it. */
+  background: var(--bg-surface);
   color: var(--text-secondary);
   border: none;
   cursor: pointer;

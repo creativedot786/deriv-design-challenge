@@ -129,6 +129,15 @@
   gap: 2px;
 }
 
+/* M26 — pins the button to the card's bottom edge instead of it just
+   trailing whatever content happens to precede it. Paired with the
+   grid's align-items:stretch, this is what makes the two cards in a
+   row line their CTAs up on the same baseline regardless of how much
+   copy each one has above it. */
+.repeatCta {
+  margin-top: auto;
+}
+
 .walletCard {
   display: flex;
   flex-direction: column;
@@ -138,6 +147,10 @@
      its caption starts at the same Y as repeatCard's, not offset by the
      8px difference between the two Card variants' padding. */
   padding: var(--space-5);
+}
+
+.walletCta {
+  margin-top: auto;
 }
 
 /* ---------- Repeat transfer + Quick send ---------- */
@@ -164,16 +177,22 @@
 
 /* A highlighted callout, not another plain caption line — makes the
    next-tier benefit the thing your eye lands on second (after the tier
-   badge itself), with Learn more grouped right into it. */
+   badge itself), with Learn more grouped right into it. Gold rather
+   than the brand indigo used everywhere else — a one-off tint for this
+   one "reach Gold" moment, not a new semantic token (tiers.gold* are
+   already a closed, named set per colors.css's own note, so reusing
+   them here doesn't add anything to the DS). Pinned to the card's
+   bottom edge, same reasoning as .repeatCta/.walletCta above. */
 .tierNextPerk {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: var(--space-2);
   width: 100%;
+  margin-top: auto;
   padding: var(--space-3);
   border-radius: var(--radius-md);
-  background: var(--bg-brand-muted);
+  background: var(--tier-gold-muted);
 }
 
 .quickSendCard {
@@ -181,4 +200,9 @@
   flex-direction: column;
   gap: var(--space-3);
   padding: var(--space-5);
+}
+
+.quickSendCta {
+  margin-top: auto;
+  align-self: flex-start;
 }

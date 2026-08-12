@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'react'
-import { AmountInput, ComparisonRow, CountrySelector, Modal, SegmentedControl } from '../../design-system/components'
+import { AmountInput, ComparisonRow, CountrySelector, Modal } from '../../design-system/components'
 import { corridors } from '../../mocks/corridors'
 import type { Provider } from '../../mocks/providers'
 import { rankProviderRates } from '../../mocks/rates'
-import type { RateSortBy } from '../../mocks/rates'
 import styles from './RateCheckerModal.module.css'
 
 export interface RateCheckerModalProps {
@@ -45,14 +44,12 @@ export function RateCheckerModal({ isOpen, onClose, providers, defaultCorridorId
   const [direction, setDirection] = useState<'send' | 'receive'>('send')
   const [rawAmount, setRawAmount] = useState(DEFAULT_AMOUNT)
   const [corridorId, setCorridorId] = useState(defaultCorridorId)
-  const [sortBy, setSortBy] = useState<RateSortBy>('amount')
 
   useEffect(() => {
     if (isOpen) {
       setDirection('send')
       setRawAmount(DEFAULT_AMOUNT)
       setCorridorId(defaultCorridorId)
-      setSortBy('amount')
     }
   }, [isOpen, defaultCorridorId])
 
@@ -66,7 +63,7 @@ export function RateCheckerModal({ isOpen, onClose, providers, defaultCorridorId
     direction === 'send' ? rawNumeric : Number.isNaN(rawNumeric) ? Number.NaN : rawNumeric / corridor.midMarketRate
   const isValid = !Number.isNaN(sendAmountAed) && sendAmountAed > 0
 
-  const ranked = isValid ? rankProviderRates(corridorId, sendAmountAed, providers, sortBy) : []
+  const ranked = isValid ? rankProviderRates(corridorId, sendAmountAed, providers) : []
   const topReceive = ranked[0]?.quote?.recipientReceives
 
   const sendDisplay = direction === 'send' ? rawAmount : isValid ? sendAmountAed.toFixed(2) : '0.00'
@@ -95,11 +92,11 @@ export function RateCheckerModal({ isOpen, onClose, providers, defaultCorridorId
           <p className="ds-text-h2">Check today's rates</p>
         </div>
 
-        {/* M25 — two columns instead of one long stack: fields+sort stay
-            in view on the left while only the results scroll on the
-            right, instead of the whole modal needing to scroll just to
-            see past the 3rd provider. Collapses to a single column
-            below 640px, same as the app-shell's own breakpoint pattern. */}
+        {/* M25 — two columns instead of one long stack: fields stay in
+            view on the left while only the results scroll on the right,
+            instead of the whole modal needing to scroll just to see
+            past the 3rd provider. Collapses to a single column below
+            640px, same as the app-shell's own breakpoint pattern. */}
         <div className={styles.layout}>
           <div className={styles.controls}>
             <CountrySelector
@@ -142,17 +139,6 @@ export function RateCheckerModal({ isOpen, onClose, providers, defaultCorridorId
                 />
               </div>
             </div>
-
-            <SegmentedControl
-              aria-label="Sort providers by"
-              value={sortBy}
-              onChange={setSortBy}
-              options={[
-                { value: 'amount', label: 'Recipient gets most' },
-                { value: 'fast', label: 'Fastest' },
-                { value: 'cheap', label: 'Lowest cost' },
-              ]}
-            />
           </div>
 
           <div className={styles.results}>
@@ -168,8 +154,6 @@ export function RateCheckerModal({ isOpen, onClose, providers, defaultCorridorId
                   recipientReceivesLabel={quote ? `${corridor.currencySymbol}${quote.recipientReceives.toFixed(2)}` : '—'}
                   rateLabel={`1 AED = ${rate.exchangeRate} ${corridor.currencyCode}`}
                   feeLabel={rate.feeAed === 0 ? 'No fee' : `AED ${rate.feeAed} fee`}
-                  deliveryEtaLabel={rate.deliveryEtaLabel}
-                  asOfLabel={rate.asOfLabel}
                   rankLabel={rankLabel}
                 />
               )
