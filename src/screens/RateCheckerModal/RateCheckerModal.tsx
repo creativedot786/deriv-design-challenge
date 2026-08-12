@@ -86,7 +86,7 @@ export function RateCheckerModal({ isOpen, onClose, providers, defaultCorridorId
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} label="Check today's rates">
+    <Modal isOpen={isOpen} onClose={onClose} label="Check today's rates" size="wide">
       <div className={styles.content}>
         <div className={styles.header}>
           <button type="button" className={styles.iconButton} onClick={onClose} aria-label="Close">
@@ -95,77 +95,86 @@ export function RateCheckerModal({ isOpen, onClose, providers, defaultCorridorId
           <p className="ds-text-h2">Check today's rates</p>
         </div>
 
-        <CountrySelector
-          label="Receiving in"
-          options={corridors.map((c) => ({ id: c.id, countryName: c.countryName, currencyCode: c.currencyCode, flag: c.flag }))}
-          value={corridorId}
-          onChange={setCorridorId}
-        />
+        {/* M25 — two columns instead of one long stack: fields+sort stay
+            in view on the left while only the results scroll on the
+            right, instead of the whole modal needing to scroll just to
+            see past the 3rd provider. Collapses to a single column
+            below 640px, same as the app-shell's own breakpoint pattern. */}
+        <div className={styles.layout}>
+          <div className={styles.controls}>
+            <CountrySelector
+              label="Receiving in"
+              options={corridors.map((c) => ({ id: c.id, countryName: c.countryName, currencyCode: c.currencyCode, flag: c.flag }))}
+              value={corridorId}
+              onChange={setCorridorId}
+            />
 
-        <div className={styles.fields}>
-          <div className={styles.field}>
-            <span className="ds-text-caption" style={{ color: 'var(--text-muted)' }}>
-              You send
-            </span>
-            <AmountInput
-              value={sendDisplay}
-              currencyLabel="AED"
-              onChange={(e) => {
-                setDirection('send')
-                setRawAmount(e.target.value)
-              }}
+            <div className={styles.fields}>
+              <div className={styles.field}>
+                <span className="ds-text-caption" style={{ color: 'var(--text-muted)' }}>
+                  You send
+                </span>
+                <AmountInput
+                  value={sendDisplay}
+                  currencyLabel="AED"
+                  onChange={(e) => {
+                    setDirection('send')
+                    setRawAmount(e.target.value)
+                  }}
+                />
+              </div>
+
+              <button type="button" className={styles.swapButton} onClick={handleSwap} aria-label="Switch which amount you're entering">
+                <SwapIcon />
+              </button>
+
+              <div className={styles.field}>
+                <span className="ds-text-caption" style={{ color: 'var(--text-muted)' }}>
+                  They get
+                </span>
+                <AmountInput
+                  value={receiveDisplay}
+                  currencyLabel={corridor.currencyCode}
+                  onChange={(e) => {
+                    setDirection('receive')
+                    setRawAmount(e.target.value)
+                  }}
+                />
+              </div>
+            </div>
+
+            <SegmentedControl
+              aria-label="Sort providers by"
+              value={sortBy}
+              onChange={setSortBy}
+              options={[
+                { value: 'amount', label: 'Recipient gets most' },
+                { value: 'fast', label: 'Fastest' },
+                { value: 'cheap', label: 'Lowest cost' },
+              ]}
             />
           </div>
 
-          <button type="button" className={styles.swapButton} onClick={handleSwap} aria-label="Switch which amount you're entering">
-            <SwapIcon />
-          </button>
-
-          <div className={styles.field}>
-            <span className="ds-text-caption" style={{ color: 'var(--text-muted)' }}>
-              They get
-            </span>
-            <AmountInput
-              value={receiveDisplay}
-              currencyLabel={corridor.currencyCode}
-              onChange={(e) => {
-                setDirection('receive')
-                setRawAmount(e.target.value)
-              }}
-            />
+          <div className={styles.results}>
+            {ranked.map(({ rate, provider, quote, isMostReceived, isFastest }) => {
+              const rankLabel =
+                isMostReceived && isFastest ? 'Most received · Fastest' : isMostReceived ? 'Most received' : isFastest ? 'Fastest' : undefined
+              return (
+                <ComparisonRow
+                  key={provider.id}
+                  providerName={provider.name}
+                  providerInitials={provider.initials}
+                  isConnected={provider.status === 'connected'}
+                  recipientReceivesLabel={quote ? `${corridor.currencySymbol}${quote.recipientReceives.toFixed(2)}` : '—'}
+                  rateLabel={`1 AED = ${rate.exchangeRate} ${corridor.currencyCode}`}
+                  feeLabel={rate.feeAed === 0 ? 'No fee' : `AED ${rate.feeAed} fee`}
+                  deliveryEtaLabel={rate.deliveryEtaLabel}
+                  asOfLabel={rate.asOfLabel}
+                  rankLabel={rankLabel}
+                />
+              )
+            })}
           </div>
-        </div>
-
-        <SegmentedControl
-          aria-label="Sort providers by"
-          value={sortBy}
-          onChange={setSortBy}
-          options={[
-            { value: 'amount', label: 'Recipient gets most' },
-            { value: 'fast', label: 'Fastest' },
-            { value: 'cheap', label: 'Lowest cost' },
-          ]}
-        />
-
-        <div className={styles.results}>
-          {ranked.map(({ rate, provider, quote, isMostReceived, isFastest }) => {
-            const rankLabel =
-              isMostReceived && isFastest ? 'Most received · Fastest' : isMostReceived ? 'Most received' : isFastest ? 'Fastest' : undefined
-            return (
-              <ComparisonRow
-                key={provider.id}
-                providerName={provider.name}
-                providerInitials={provider.initials}
-                isConnected={provider.status === 'connected'}
-                recipientReceivesLabel={quote ? `${corridor.currencySymbol}${quote.recipientReceives.toFixed(2)}` : '—'}
-                rateLabel={`1 AED = ${rate.exchangeRate} ${corridor.currencyCode}`}
-                feeLabel={rate.feeAed === 0 ? 'No fee' : `AED ${rate.feeAed} fee`}
-                deliveryEtaLabel={rate.deliveryEtaLabel}
-                asOfLabel={rate.asOfLabel}
-                rankLabel={rankLabel}
-              />
-            )
-          })}
         </div>
       </div>
     </Modal>

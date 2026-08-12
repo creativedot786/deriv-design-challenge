@@ -15,25 +15,12 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
+  background: var(--bg-surface-muted);
+  color: var(--text-secondary);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-}
-
-.icon.muted {
-  background: var(--bg-surface-muted);
-  color: var(--text-secondary);
-}
-
-.icon.savings {
-  background: var(--bg-savings-muted);
-  color: var(--text-savings);
-}
-
-.icon.brand {
-  background: var(--bg-brand-muted);
-  color: var(--text-brand);
 }
 
 .mid {

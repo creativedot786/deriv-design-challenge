@@ -228,7 +228,7 @@ export function SendMoneyModal({ isOpen, onClose, onComplete, beneficiaries, pro
     <Modal isOpen={isOpen} onClose={onClose} label="Send money">
       <div className={styles.content}>
         {step === 'amount' && (
-          <>
+          <div key="amount" className={styles.stepEnter}>
             <StepHeader title="Send money" step="amount" onClose={onClose} />
 
             <AmountInput
@@ -246,11 +246,11 @@ export function SendMoneyModal({ isOpen, onClose, onComplete, beneficiaries, pro
             >
               Continue
             </Button>
-          </>
+          </div>
         )}
 
         {step === 'beneficiary' && (
-          <>
+          <div key="beneficiary" className={styles.stepEnter}>
             <StepHeader title="Choose beneficiary" step="beneficiary" onBack={() => setStep('amount')} onClose={onClose} />
             <div className={styles.recipientList}>
               {beneficiaries.map((b) => {
@@ -272,11 +272,11 @@ export function SendMoneyModal({ isOpen, onClose, onComplete, beneficiaries, pro
               })}
               <AddRecipient />
             </div>
-          </>
+          </div>
         )}
 
         {step === 'compare' && selectedBeneficiary && (
-          <>
+          <div key="compare" className={styles.stepEnter}>
             <StepHeader title="Compare providers" step="compare" onBack={() => setStep('beneficiary')} onClose={onClose} />
             <p className="ds-text-caption" style={{ color: 'var(--text-muted)' }}>
               Sending AED {numericAmount.toFixed(2)} to {selectedBeneficiary.name} in {corridor.countryName}
@@ -324,11 +324,11 @@ export function SendMoneyModal({ isOpen, onClose, onComplete, beneficiaries, pro
                 )
               })}
             </div>
-          </>
+          </div>
         )}
 
         {step === 'review' && selectedProvider && selectedRate && selectedBeneficiary && selectedQuote && (
-          <>
+          <div key="review" className={styles.stepEnter}>
             <StepHeader title="Review & send" step="review" onBack={() => setStep('compare')} onClose={onClose} />
 
             <div className={styles.chip}>
@@ -371,7 +371,7 @@ export function SendMoneyModal({ isOpen, onClose, onComplete, beneficiaries, pro
             <Button variant="primary" fullWidth onClick={handleSend} isLoading={isSending}>
               Send
             </Button>
-          </>
+          </div>
         )}
       </div>
     </Modal>

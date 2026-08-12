@@ -52,10 +52,6 @@ const activityIcon: Partial<Record<ActivityKind, ReactNode>> = {
   cashback: <CashbackIcon />,
   topup: <TopupIcon />,
 }
-const activityIconTone: Partial<Record<ActivityKind, 'savings' | 'brand'>> = {
-  cashback: 'savings',
-  topup: 'brand',
-}
 const activityDirection: Record<ActivityKind, 'incoming' | 'outgoing'> = {
   transfer: 'outgoing',
   cashback: 'incoming',
@@ -150,7 +146,8 @@ export function Dashboard() {
       {teaserBest?.quote && (
         <Card variant="elevated" className={styles.teaserCard}>
           <span className="ds-text-label">
-            Sending to {teaserCorridor.countryName} today? {teaserBest.provider.name} gives the most right now.
+            Sending to {teaserCorridor.countryName} today? {teaserBest.provider.name} gives 1 AED = {teaserBest.rate.exchangeRate}{' '}
+            {teaserCorridor.currencyCode} right now.
           </span>
           <Button variant="link" onClick={onCheckRatesClick}>
             Compare rates
@@ -158,8 +155,60 @@ export function Dashboard() {
         </Card>
       )}
 
-      {/* ---------- Repeat transfer + Wallet, side by side ---------- */}
+      {/* ---------- Wallet + Tier, side by side ---------- */}
       <div className={styles.heroGrid}>
+        {isLoading ? (
+          <Card variant="spotlight" className={styles.walletCard}>
+            <Skeleton inverse width={120} height={12} />
+            <div style={{ height: 10 }} />
+            <Skeleton inverse width={160} height={24} />
+          </Card>
+        ) : (
+          <Card variant="spotlight" className={styles.walletCard}>
+            <p className="ds-text-caption" style={{ color: 'var(--text-inverse-muted)' }}>
+              Wallet balance
+            </p>
+            <p className="ds-text-display">AED {wallet.floatBalanceAed.toFixed(2)}</p>
+            <p className="ds-text-caption" style={{ color: 'var(--text-inverse-muted)' }}>
+              + AED {wallet.cashbackEarnedAed.toFixed(2)} cashback earned
+            </p>
+            <Button variant="secondary">Add money</Button>
+          </Card>
+        )}
+
+        {!isLoading && (
+          <Card variant="elevated" className={styles.tierCard}>
+            <span className="ds-text-caption" style={{ color: 'var(--text-muted)' }}>
+              Tier
+            </span>
+            <TierBadge label={tier.name} colorVar={tier.colorVar} mutedVar={tier.mutedVar} />
+            {next && (
+              <>
+                <ProgressMeter
+                  value={tierProgressPct}
+                  label={`AED ${currentUserTierProgress.sentLast12MonthsAed.toLocaleString()} of ${next.thresholdAed.toLocaleString()} to ${next.name}`}
+                  colorVar={tier.colorVar}
+                />
+                <div className={styles.tierNextPerk}>
+                  <span className="ds-text-label" style={{ color: 'var(--text-primary)' }}>
+                    Reach {next.name} for {next.perkLabel}
+                  </span>
+                  <Button variant="secondary">Learn more</Button>
+                </div>
+              </>
+            )}
+          </Card>
+        )}
+      </div>
+
+      <div className={styles.mobileCta}>
+        <Button variant="primary" fullWidth onClick={() => onSendMoneyClick()}>
+          Send money
+        </Button>
+      </div>
+
+      {/* ---------- Repeat transfer + Quick send, side by side ---------- */}
+      <div className={styles.statsGrid}>
         {isLoading ? (
           <Card variant="elevated" className={styles.repeatCard}>
             <Skeleton width={120} height={12} />
@@ -191,56 +240,6 @@ export function Dashboard() {
             </Button>
           </Card>
         ) : null}
-
-        {isLoading ? (
-          <Card variant="spotlight" className={styles.walletCard}>
-            <Skeleton inverse width={120} height={12} />
-            <div style={{ height: 10 }} />
-            <Skeleton inverse width={160} height={24} />
-          </Card>
-        ) : (
-          <Card variant="spotlight" className={styles.walletCard}>
-            <p className="ds-text-caption" style={{ color: 'var(--text-inverse-muted)' }}>
-              Wallet balance
-            </p>
-            <p className="ds-text-display">AED {wallet.floatBalanceAed.toFixed(2)}</p>
-            <p className="ds-text-caption" style={{ color: 'var(--text-inverse-muted)' }}>
-              + AED {wallet.cashbackEarnedAed.toFixed(2)} cashback earned
-            </p>
-            <Button variant="secondary">Add money</Button>
-          </Card>
-        )}
-      </div>
-
-      <div className={styles.mobileCta}>
-        <Button variant="primary" fullWidth onClick={() => onSendMoneyClick()}>
-          Send money
-        </Button>
-      </div>
-
-      {/* ---------- Tier + Quick send, side by side ---------- */}
-      <div className={styles.statsGrid}>
-        {!isLoading && (
-          <Card variant="elevated" className={styles.tierCard}>
-            <span className="ds-text-caption" style={{ color: 'var(--text-muted)' }}>
-              Tier
-            </span>
-            <TierBadge label={tier.name} colorVar={tier.colorVar} mutedVar={tier.mutedVar} />
-            {next && (
-              <>
-                <ProgressMeter
-                  value={tierProgressPct}
-                  label={`AED ${currentUserTierProgress.sentLast12MonthsAed.toLocaleString()} of ${next.thresholdAed.toLocaleString()} to ${next.name}`}
-                  colorVar={tier.colorVar}
-                />
-                <span className="ds-text-caption" style={{ color: 'var(--text-muted)' }}>
-                  Reach {next.name} for {next.perkLabel}
-                </span>
-                <Button variant="link">Learn more</Button>
-              </>
-            )}
-          </Card>
-        )}
 
         <Card variant="elevated" className={styles.quickSendCard}>
           <span className="ds-text-caption" style={{ color: 'var(--text-muted)' }}>
@@ -304,7 +303,6 @@ export function Dashboard() {
                     status={statusBadgeKind[item.status]}
                     statusLabel={statusLabel[item.status]}
                     icon={activityIcon[item.kind]}
-                    iconTone={activityIconTone[item.kind]}
                   />
                 ))}
               </Card>

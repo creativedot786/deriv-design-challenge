@@ -37,10 +37,6 @@ const activityIcon: Partial<Record<ActivityKind, ReactNode>> = {
   cashback: <CashbackIcon />,
   topup: <TopupIcon />,
 }
-const activityIconTone: Partial<Record<ActivityKind, 'savings' | 'brand'>> = {
-  cashback: 'savings',
-  topup: 'brand',
-}
 const activityDirection: Record<ActivityKind, 'incoming' | 'outgoing'> = {
   transfer: 'outgoing',
   cashback: 'incoming',
@@ -93,7 +89,6 @@ export function Activity() {
                   status={statusBadgeKind[item.status]}
                   statusLabel={statusLabel[item.status]}
                   icon={activityIcon[item.kind]}
-                  iconTone={activityIconTone[item.kind]}
                 />
               ))}
             </Card>

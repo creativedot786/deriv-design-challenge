@@ -4,6 +4,35 @@
   gap: var(--space-5);
 }
 
+/* M25 — each step is a freshly-mounted, keyed element (see
+   SendMoneyModal.tsx), so a plain CSS animation plays on every step
+   change without needing exit-transition plumbing like Modal.tsx's
+   open/close does — the old step is just gone by the time this one
+   mounts. */
+.stepEnter {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  animation: stepEnter 260ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes stepEnter {
+  from {
+    opacity: 0;
+    transform: translateX(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stepEnter {
+    animation-duration: 0.01ms;
+  }
+}
+
 /* M19 — replaces .backButton/.stepHeading. Every step gets this same
    header: a persistent close button, an optional back arrow, a progress
    bar, and a plain-language title — instead of a single text link that

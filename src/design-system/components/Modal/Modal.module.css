@@ -11,6 +11,14 @@
   justify-content: center;
   padding: var(--space-4);
   z-index: 100;
+  /* M25 — fades in/out instead of appearing instantly; duration must
+     match Modal.tsx's EXIT_DURATION_MS. */
+  opacity: 0;
+  transition: opacity 200ms ease;
+}
+
+.overlayVisible {
+  opacity: 1;
 }
 
 .panel {
@@ -25,4 +33,32 @@
   max-width: 500px;
   max-height: 90vh;
   overflow-y: auto;
+  /* M25 — settles in from slightly below/smaller rather than snapping
+     into place; ease-out-ish curve so it decelerates into rest, not a
+     linear slide. Mirrors Modal.tsx's mount-then-open-next-frame timing. */
+  opacity: 0;
+  transform: translateY(16px) scale(0.98);
+  transition:
+    opacity 200ms ease,
+    transform 200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.panelVisible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .overlay,
+  .panel {
+    transition-duration: 0.01ms;
+  }
+}
+
+/* M25 — for content that packs fields beside a results list (the rate
+   checker) instead of one thing stacked under the next. Wide enough to
+   put both in view without the whole panel scrolling for every glance
+   at the numbers. */
+.panelWide {
+  max-width: 860px;
 }

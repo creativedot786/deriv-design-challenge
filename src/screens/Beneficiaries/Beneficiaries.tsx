@@ -6,13 +6,23 @@ import {
   CountrySelector,
   EmptyState,
   Input,
+  Modal,
   RecipientOption,
   SegmentedControl,
+  Select,
 } from '../../design-system/components'
 import { corridors } from '../../mocks/corridors'
+import { banksForCorridor } from '../../mocks/banks'
 import type { Beneficiary, PayoutMethod } from '../../mocks/beneficiaries'
 import type { AppOutletContext } from '../AppShell'
 import styles from './Beneficiaries.module.css'
+
+const CloseIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <line x1="18" y1="6" x2="6" y2="18" />
+    <line x1="6" y1="6" x2="18" y2="18" />
+  </svg>
+)
 
 const PeopleIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -128,16 +138,19 @@ export function Beneficiaries() {
     <div className={styles.page}>
       <div className={styles.header}>
         <span className="ds-text-h1">Beneficiaries</span>
-        {!isAdding && (
-          <Button variant="primary" onClick={() => setIsAdding(true)}>
-            Add beneficiary
-          </Button>
-        )}
+        <Button variant="primary" onClick={() => setIsAdding(true)}>
+          Add beneficiary
+        </Button>
       </div>
 
-      {isAdding && (
-        <Card variant="flat" className={styles.formCard}>
-          <p className="ds-text-h2">New beneficiary</p>
+      <Modal isOpen={isAdding} onClose={resetForm} label="Add beneficiary">
+        <div className={styles.formCard}>
+          <div className={styles.formHeader}>
+            <p className="ds-text-h2">New beneficiary</p>
+            <button type="button" className={styles.iconButton} onClick={resetForm} aria-label="Close">
+              <CloseIcon />
+            </button>
+          </div>
 
           <Input
             label="Full name"
@@ -150,7 +163,11 @@ export function Beneficiaries() {
             label="Destination country"
             options={corridors.map((c) => ({ id: c.id, countryName: c.countryName, currencyCode: c.currencyCode, flag: c.flag }))}
             value={draft.corridorId}
-            onChange={(id) => setDraft((d) => ({ ...d, corridorId: id }))}
+            // Bank options are per-country — a bank picked under the old
+            // country wouldn't be a real option under the new one, so
+            // clear it here rather than carry over a value that's about
+            // to disappear from the dropdown.
+            onChange={(id) => setDraft((d) => ({ ...d, corridorId: id, bankName: '' }))}
           />
 
           <div className={styles.field}>
@@ -169,11 +186,12 @@ export function Beneficiaries() {
 
           {draft.payoutMethod === 'bank' && (
             <>
-              <Input
+              <Select
                 label="Bank name"
+                placeholder="Select a bank"
                 value={draft.bankName}
                 onChange={(e) => setDraft((d) => ({ ...d, bankName: e.target.value }))}
-                placeholder="e.g. HDFC Bank"
+                options={banksForCorridor(draft.corridorId).map((name) => ({ value: name, label: name }))}
               />
               <Input
                 label="Account number"
@@ -226,8 +244,8 @@ export function Beneficiaries() {
               Save beneficiary
             </Button>
           </div>
-        </Card>
-      )}
+        </div>
+      </Modal>
 
       {beneficiaries.length === 0 ? (
         <Card variant="flat">
