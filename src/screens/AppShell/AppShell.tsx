@@ -1,11 +1,27 @@
 import { NavLink, Outlet } from 'react-router-dom'
 import { Avatar } from '../../design-system/components'
 import { currentUser } from '../../mocks/user'
+import type { Beneficiary } from '../../mocks/beneficiaries'
 import { ActivityIcon, HomeIcon, LogoIcon, ProfileIcon, SendIcon } from './icons'
 import styles from './AppShell.module.css'
 
 export interface AppShellProps {
   onSendMoneyClick: () => void
+  /**
+   * Lifted to App.tsx in M17 so the Beneficiaries screen and the Send
+   * Money flow read/write the same list — mirrors the existing
+   * single-source-of-truth rule for Quick Send/recipients (see AGENTS.md:
+   * "don't reintroduce two separate recipient lists"), now applying to
+   * beneficiaries too.
+   */
+  beneficiaries: Beneficiary[]
+  onAddBeneficiary: (beneficiary: Beneficiary) => void
+}
+
+export interface AppOutletContext {
+  onSendMoneyClick: () => void
+  beneficiaries: Beneficiary[]
+  onAddBeneficiary: (beneficiary: Beneficiary) => void
 }
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
@@ -18,7 +34,7 @@ const navLinkClass = ({ isActive }: { isActive: boolean }) =>
  * handler, not a route: it opens as a modal from any page (App.tsx owns
  * the modal state) — see the discovery doc's send-flow section.
  */
-export function AppShell({ onSendMoneyClick }: AppShellProps) {
+export function AppShell({ onSendMoneyClick, beneficiaries, onAddBeneficiary }: AppShellProps) {
   return (
     <div className={styles.page}>
       <div className={styles.pageInner}>
@@ -62,7 +78,7 @@ export function AppShell({ onSendMoneyClick }: AppShellProps) {
         </aside>
 
         <main className={styles.main}>
-          <Outlet context={{ onSendMoneyClick }} />
+          <Outlet context={{ onSendMoneyClick, beneficiaries, onAddBeneficiary } satisfies AppOutletContext} />
         </main>
       </div>
 

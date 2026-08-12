@@ -15,7 +15,7 @@ import {
 import { corridors, defaultCorridorId } from '../../mocks/corridors'
 import { providers } from '../../mocks/providers'
 import { providerRate, providerRates, quoteFor } from '../../mocks/rates'
-import { beneficiariesForCorridor } from '../../mocks/beneficiaries'
+import type { Beneficiary } from '../../mocks/beneficiaries'
 import { fundingMethods } from '../../mocks/fundingMethods'
 import { currentUserTierProgress, tierById } from '../../mocks/tiers'
 import styles from './SendMoneyModal.module.css'
@@ -23,6 +23,13 @@ import styles from './SendMoneyModal.module.css'
 export interface SendMoneyModalProps {
   isOpen: boolean
   onClose: () => void
+  /**
+   * Owned by App.tsx (M17) — the same list the Beneficiaries screen
+   * reads/writes, so a beneficiary added there shows up here without a
+   * reload. Passed as a prop rather than imported directly from the mock
+   * file, unlike every other read-only mock source in this component.
+   */
+  beneficiaries: Beneficiary[]
   /** Called when the user hits Send — parent transitions to the Success modal. */
   onComplete: (details: {
     recipientName: string
@@ -44,7 +51,7 @@ function payoutMethodLabel(method: 'bank' | 'cash_pickup' | 'mobile_wallet'): st
   return 'Mobile wallet'
 }
 
-export function SendMoneyModal({ isOpen, onClose, onComplete }: SendMoneyModalProps) {
+export function SendMoneyModal({ isOpen, onClose, onComplete, beneficiaries }: SendMoneyModalProps) {
   const navigate = useNavigate()
   const [step, setStep] = useState<Step>('amount')
   const [corridorId, setCorridorId] = useState(defaultCorridorId)
@@ -111,7 +118,10 @@ export function SendMoneyModal({ isOpen, onClose, onComplete }: SendMoneyModalPr
   const selectedProvider = selectedProviderId ? providers.find((p) => p.id === selectedProviderId) : undefined
   const selectedQuote = selectedProviderId && !isZeroOrInvalid ? quoteFor(selectedProviderId, corridorId, numericAmount) : undefined
 
-  const corridorBeneficiaries = useMemo(() => beneficiariesForCorridor(corridorId), [corridorId])
+  const corridorBeneficiaries = useMemo(
+    () => beneficiaries.filter((b) => b.corridorId === corridorId),
+    [beneficiaries, corridorId],
+  )
   const selectedBeneficiary = corridorBeneficiaries.find((b) => b.id === selectedBeneficiaryId)
 
   const tier = tierById(currentUserTierProgress.tierId)
