@@ -10,12 +10,13 @@ import { SendMoneyModal } from './screens/SendMoneyModal'
 import type { SendMoneyPrefill } from './screens/SendMoneyModal'
 import { SuccessModal } from './screens/SuccessModal'
 import { RateCheckerModal } from './screens/RateCheckerModal'
+import { AddBeneficiaryModal } from './screens/AddBeneficiaryModal'
 import { beneficiaries as initialBeneficiaries } from './mocks/beneficiaries'
 import type { Beneficiary } from './mocks/beneficiaries'
 import { providers as initialProviders } from './mocks/providers'
 import type { Provider, ProviderStatus } from './mocks/providers'
 
-type ActiveModal = 'sendMoney' | 'success' | 'rateChecker' | null
+type ActiveModal = 'sendMoney' | 'success' | 'rateChecker' | 'addBeneficiary' | null
 
 /** Pakistan, not the Send flow's India default — see RateCheckerModal's doc comment on why this tool defaults differently. */
 const RATE_CHECKER_DEFAULT_CORRIDOR = 'c-pk'
@@ -66,8 +67,8 @@ function App() {
             <AppShell
               onSendMoneyClick={openSendMoney}
               onCheckRatesClick={() => setActiveModal('rateChecker')}
+              onAddBeneficiaryClick={() => setActiveModal('addBeneficiary')}
               beneficiaries={beneficiaries}
-              onAddBeneficiary={addBeneficiary}
               providers={providers}
               onUpdateProviderStatus={updateProviderStatus}
             />
@@ -109,6 +110,8 @@ function App() {
         providers={providers}
         defaultCorridorId={RATE_CHECKER_DEFAULT_CORRIDOR}
       />
+
+      <AddBeneficiaryModal isOpen={activeModal === 'addBeneficiary'} onClose={() => setActiveModal(null)} onAdd={addBeneficiary} />
     </BrowserRouter>
   )
 }

@@ -62,3 +62,42 @@
 .panelWide {
   max-width: 860px;
 }
+
+.sheetHandle {
+  display: none;
+}
+
+/* M28 — every modal becomes a bottom sheet on mobile instead of a
+   centered dialog: anchored to the bottom edge, full width, only the
+   top corners rounded, slides up rather than fading+scaling in place.
+   Same breakpoint as the app-shell's own sidebar/bottom-nav switch. */
+@media (max-width: 859px) {
+  .overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .panel,
+  .panelWide {
+    max-width: 100%;
+    width: 100%;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    max-height: 85vh;
+    padding-top: var(--space-4);
+    transform: translateY(100%);
+  }
+
+  .panelVisible {
+    transform: translateY(0);
+  }
+
+  .sheetHandle {
+    display: block;
+    width: 36px;
+    height: 4px;
+    border-radius: var(--radius-full);
+    background: var(--border-strong);
+    margin: 0 auto var(--space-4);
+    flex-shrink: 0;
+  }
+}

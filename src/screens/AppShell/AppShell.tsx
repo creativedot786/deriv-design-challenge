@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
 import { Avatar } from '../../design-system/components'
 import { currentUser } from '../../mocks/user'
@@ -22,6 +23,8 @@ interface SendMoneyPrefill {
 export interface AppShellProps {
   onSendMoneyClick: (prefill?: SendMoneyPrefill) => void
   onCheckRatesClick: () => void
+  /** Opens the shared AddBeneficiaryModal (owned by App.tsx) — same modal whether triggered from here or from Dashboard's Quick Send card. */
+  onAddBeneficiaryClick: () => void
   /**
    * Lifted to App.tsx in M17/M18 so the Beneficiaries/Providers screens
    * and the Send Money flow all read/write the same lists — mirrors the
@@ -30,7 +33,6 @@ export interface AppShellProps {
    * applying to beneficiaries and provider connection state too.
    */
   beneficiaries: Beneficiary[]
-  onAddBeneficiary: (beneficiary: Beneficiary) => void
   providers: Provider[]
   onUpdateProviderStatus: (providerId: string, status: ProviderStatus) => void
 }
@@ -38,8 +40,8 @@ export interface AppShellProps {
 export interface AppOutletContext {
   onSendMoneyClick: (prefill?: SendMoneyPrefill) => void
   onCheckRatesClick: () => void
+  onAddBeneficiaryClick: () => void
   beneficiaries: Beneficiary[]
-  onAddBeneficiary: (beneficiary: Beneficiary) => void
   providers: Provider[]
   onUpdateProviderStatus: (providerId: string, status: ProviderStatus) => void
 }
@@ -75,11 +77,24 @@ const navLinkClass = ({ isActive }: { isActive: boolean }) =>
 export function AppShell({
   onSendMoneyClick,
   onCheckRatesClick,
+  onAddBeneficiaryClick,
   beneficiaries,
-  onAddBeneficiary,
   providers,
   onUpdateProviderStatus,
 }: AppShellProps) {
+  // M28 — the FAB starts as a labeled pill (so a first-time mobile user
+  // sees what it does) and collapses to an icon-only circle once
+  // there's real content above it to make room for, matching the
+  // Material "extended FAB" scroll pattern. Lives here rather than in
+  // Dashboard since the FAB itself is shell-level, not page-level.
+  const [isScrolled, setIsScrolled] = useState(false)
+  useEffect(() => {
+    const handleScroll = () => setIsScrolled(window.scrollY > 80)
+    handleScroll()
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
   return (
     <div className={styles.page}>
       <div className={styles.pageInner}>
@@ -120,9 +135,30 @@ export function AppShell({
         </aside>
 
         <main className={styles.main}>
+          {/* M28 — mobile had no brand mark at all once the sidebar
+              hides below 860px. A slim top bar, not folded into
+              Dashboard's hero, so it's present on every mobile route
+              (Beneficiaries/Providers/Activity/Profile included), same
+              as the sidebar logo is on desktop. */}
+          <div className={styles.mobileTopBar}>
+            <span className={styles.mobileLogo}>
+              <LogoIcon />
+            </span>
+            <span className="ds-text-label" style={{ color: 'var(--text-primary)' }}>
+              RemitOne
+            </span>
+          </div>
+
           <Outlet
             context={
-              { onSendMoneyClick, onCheckRatesClick, beneficiaries, onAddBeneficiary, providers, onUpdateProviderStatus } satisfies AppOutletContext
+              {
+                onSendMoneyClick,
+                onCheckRatesClick,
+                onAddBeneficiaryClick,
+                beneficiaries,
+                providers,
+                onUpdateProviderStatus,
+              } satisfies AppOutletContext
             }
           />
         </main>
@@ -143,8 +179,14 @@ export function AppShell({
         </NavLink>
       </nav>
 
-      <button type="button" className={styles.fab} onClick={() => onSendMoneyClick()} aria-label="Send money">
+      <button
+        type="button"
+        className={`${styles.fab} ${isScrolled ? styles.fabCollapsed : ''}`}
+        onClick={() => onSendMoneyClick()}
+        aria-label="Send money"
+      >
         <SendIcon />
+        <span className={styles.fabLabel}>Send money</span>
       </button>
     </div>
   )

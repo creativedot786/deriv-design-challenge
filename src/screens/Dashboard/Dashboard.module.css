@@ -135,12 +135,14 @@
   align-items: flex-start;
   gap: var(--space-1);
   color: var(--text-inverse);
-  /* Bleeds past .main's own padding to sit edge-to-edge, then restores
-     that space as its own padding — a masthead, not another card. */
-  margin: calc(var(--space-5) * -1) calc(var(--space-5) * -1) 0;
-  padding: var(--space-6) var(--space-5) var(--space-7);
+  /* Bleeds past .main's own side padding to sit edge-to-edge — not the
+     top too, now that AppShell's mobile top bar sits above this, so the
+     hero starts right where the top bar's own gap leaves off instead of
+     jumping all the way to the viewport edge. */
+  margin: 0 calc(var(--space-4) * -1) 0;
+  padding: var(--space-6) var(--space-4) var(--space-7);
   background: linear-gradient(135deg, var(--bg-brand) 0%, var(--bg-inverse) 100%);
-  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+  border-radius: var(--radius-lg);
 }
 
 .mobileHeroLabel {

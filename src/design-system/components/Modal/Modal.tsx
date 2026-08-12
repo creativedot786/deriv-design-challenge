@@ -80,6 +80,11 @@ export function Modal({ isOpen, onClose, label, children, size = 'default' }: Mo
         aria-label={label}
         tabIndex={-1}
       >
+        {/* M28 — sheet drag-handle affordance, mobile only (see the
+            @media block in Modal.module.css). No drag-to-dismiss gesture
+            behind it — closing still goes through the existing X/overlay-
+            tap paths, this is purely the visual cue that it's a sheet. */}
+        <span className={styles.sheetHandle} aria-hidden="true" />
         {children}
       </div>
     </div>

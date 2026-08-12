@@ -124,7 +124,9 @@
 .main {
   flex: 1;
   min-width: 0;
-  padding: var(--space-5);
+  /* M28 — was space-5 (24px); read as too much side margin on a phone
+     screen where every pixel of width matters more than on desktop. */
+  padding: var(--space-4);
   padding-bottom: 96px; /* clears the fixed bottom nav on mobile */
   display: flex;
   flex-direction: column;
@@ -135,6 +137,30 @@
   .main {
     padding: var(--space-7);
   }
+}
+
+.mobileTopBar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+@media (min-width: 860px) {
+  .mobileTopBar {
+    display: none;
+  }
+}
+
+.mobileLogo {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-brand);
+  color: var(--text-inverse);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
 .bottomNav {
@@ -178,23 +204,54 @@
    of the nav bar (not one of its flex items) so it reads as an action
    floating above the page, not a fifth destination in a 4-item bar.
    Desktop hides it — the sidebar's pages all reach Send via Home's
-   header CTA or don't need one. */
+   header CTA or don't need one.
+
+   M28 — starts as a labeled "extended FAB" (so a first visit makes it
+   obvious what the circle does) and collapses to icon-only past a
+   scroll threshold, once the user's already seen the label and the
+   space is better spent on content. `overflow: hidden` + animating the
+   label's max-width (not just opacity) is what makes the pill visibly
+   shrink instead of the icon just recentring inside a fixed-width box. */
 .fab {
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: var(--space-2);
   position: fixed;
   right: var(--space-4);
   bottom: calc(64px + var(--space-4));
-  width: 56px;
   height: 56px;
-  border-radius: 50%;
+  padding: 0 var(--space-5);
+  border-radius: var(--radius-full);
   background: var(--bg-brand);
   color: var(--text-inverse);
   border: none;
   cursor: pointer;
   box-shadow: var(--shadow-md);
   z-index: 90;
+  overflow: hidden;
+  white-space: nowrap;
+  transition: padding 200ms ease;
+}
+
+.fabLabel {
+  font-family: inherit;
+  font-weight: 600;
+  transition:
+    max-width 200ms ease,
+    opacity 150ms ease;
+  max-width: 160px;
+  opacity: 1;
+}
+
+.fabCollapsed {
+  width: 56px;
+  padding: 0;
+  justify-content: center;
+}
+
+.fabCollapsed .fabLabel {
+  max-width: 0;
+  opacity: 0;
 }
 
 @media (min-width: 860px) {

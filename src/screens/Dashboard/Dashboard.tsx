@@ -11,7 +11,7 @@ import {
   TierBadge,
   TransactionRow,
 } from '../../design-system/components'
-import type { BadgeKind } from '../../design-system/components'
+import type { BadgeKind, ButtonVariant } from '../../design-system/components'
 import type { AppOutletContext } from '../AppShell'
 import { corridors } from '../../mocks/corridors'
 import { lastTransfer } from '../../mocks/transfers'
@@ -87,7 +87,7 @@ const TEASER_AMOUNT_AED = 200
  * is computed once and rendered into whichever layout is visible.
  */
 export function Dashboard() {
-  const { onSendMoneyClick, onCheckRatesClick, beneficiaries, providers } = useOutletContext<AppOutletContext>()
+  const { onSendMoneyClick, onCheckRatesClick, onAddBeneficiaryClick, beneficiaries, providers } = useOutletContext<AppOutletContext>()
   const navigate = useNavigate()
   const [isLoading, setIsLoading] = useState(true)
 
@@ -145,68 +145,76 @@ export function Dashboard() {
     </>
   )
 
-  const tierCard = !isLoading && (
-    <Card variant="elevated" className={styles.tierCard}>
-      <span className="ds-text-caption" style={{ color: 'var(--text-muted)' }}>
-        Tier
-      </span>
-      <TierBadge label={tier.name} colorVar={tier.colorVar} mutedVar={tier.mutedVar} />
-      {next && (
-        <>
-          <ProgressMeter
-            value={tierProgressPct}
-            label={`AED ${currentUserTierProgress.sentLast12MonthsAed.toLocaleString()} of ${next.thresholdAed.toLocaleString()} to ${next.name}`}
-            colorVar={tier.colorVar}
-          />
-          <div className={styles.tierNextPerk}>
-            <span className="ds-text-label" style={{ color: 'var(--text-primary)' }}>
-              Reach {next.name} for {next.perkLabel}
-            </span>
-            <Button variant="secondary">Learn more</Button>
-          </div>
-        </>
-      )}
-    </Card>
-  )
-
-  const repeatCard = isLoading ? (
-    <Card variant="elevated" className={styles.repeatCard}>
-      <Skeleton width={120} height={12} />
-      <div style={{ height: 10 }} />
-      <Skeleton width={160} height={20} />
-    </Card>
-  ) : (
-    lastBeneficiary &&
-    lastProvider &&
-    lastCorridor &&
-    lastQuote && (
-      <Card variant="elevated" className={styles.repeatCard}>
-        <p className="ds-text-caption" style={{ color: 'var(--text-muted)' }}>
-          Repeat last transfer
-        </p>
-        <div className={styles.repeatMain}>
-          <span className={styles.repeatFlag} aria-hidden="true">
-            {lastCorridor.flag}
-          </span>
-          <div className={styles.repeatMid}>
-            <span className="ds-text-label">{lastBeneficiary.name}</span>
-            <span className="ds-text-caption" style={{ color: 'var(--text-muted)' }}>
-              via {lastProvider.name}
-            </span>
-          </div>
-        </div>
-        <p className="ds-text-body" style={{ color: 'var(--text-secondary)' }}>
-          AED {lastTransfer.amountAed.toFixed(2)} → {lastCorridor.currencySymbol}
-          {lastQuote.recipientReceives.toFixed(2)}
-        </p>
-        <Button variant="secondary" onClick={handleRepeat} className={styles.repeatCta}>
-          Repeat transfer
-        </Button>
+  // M28 — these three take a `ctaVariant` instead of being static JSX:
+  // mobile's stacked cards read as "competing" when every standalone
+  // button is the same bordered Secondary style, so mobile passes
+  // 'ghost' while desktop keeps 'secondary'. A parameterized function
+  // is the only way to vary that per breakpoint without literally
+  // duplicating each card's markup between the two layouts below.
+  const renderTierCard = (ctaVariant: ButtonVariant) =>
+    !isLoading && (
+      <Card variant="elevated" className={styles.tierCard}>
+        <span className="ds-text-caption" style={{ color: 'var(--text-muted)' }}>
+          Tier
+        </span>
+        <TierBadge label={tier.name} colorVar={tier.colorVar} mutedVar={tier.mutedVar} />
+        {next && (
+          <>
+            <ProgressMeter
+              value={tierProgressPct}
+              label={`AED ${currentUserTierProgress.sentLast12MonthsAed.toLocaleString()} of ${next.thresholdAed.toLocaleString()} to ${next.name}`}
+              colorVar={tier.colorVar}
+            />
+            <div className={styles.tierNextPerk}>
+              <span className="ds-text-label" style={{ color: 'var(--text-primary)' }}>
+                Reach {next.name} for {next.perkLabel}
+              </span>
+              <Button variant={ctaVariant}>Learn more</Button>
+            </div>
+          </>
+        )}
       </Card>
     )
-  )
 
-  const quickSendCard = (
+  const renderRepeatCard = (ctaVariant: ButtonVariant) =>
+    isLoading ? (
+      <Card variant="elevated" className={styles.repeatCard}>
+        <Skeleton width={120} height={12} />
+        <div style={{ height: 10 }} />
+        <Skeleton width={160} height={20} />
+      </Card>
+    ) : (
+      lastBeneficiary &&
+      lastProvider &&
+      lastCorridor &&
+      lastQuote && (
+        <Card variant="elevated" className={styles.repeatCard}>
+          <p className="ds-text-caption" style={{ color: 'var(--text-muted)' }}>
+            Repeat last transfer
+          </p>
+          <div className={styles.repeatMain}>
+            <span className={styles.repeatFlag} aria-hidden="true">
+              {lastCorridor.flag}
+            </span>
+            <div className={styles.repeatMid}>
+              <span className="ds-text-label">{lastBeneficiary.name}</span>
+              <span className="ds-text-caption" style={{ color: 'var(--text-muted)' }}>
+                via {lastProvider.name}
+              </span>
+            </div>
+          </div>
+          <p className="ds-text-body" style={{ color: 'var(--text-secondary)' }}>
+            AED {lastTransfer.amountAed.toFixed(2)} → {lastCorridor.currencySymbol}
+            {lastQuote.recipientReceives.toFixed(2)}
+          </p>
+          <Button variant={ctaVariant} onClick={handleRepeat} className={styles.repeatCta}>
+            Repeat transfer
+          </Button>
+        </Card>
+      )
+    )
+
+  const renderQuickSendCard = (ctaVariant: ButtonVariant) => (
     <Card variant="elevated" className={styles.quickSendCard}>
       <span className="ds-text-caption" style={{ color: 'var(--text-muted)' }}>
         Quick send
@@ -233,7 +241,7 @@ export function Dashboard() {
           })}
         </div>
       )}
-      <Button variant="secondary" className={styles.quickSendCta} onClick={() => navigate('/beneficiaries')}>
+      <Button variant={ctaVariant} className={styles.quickSendCta} onClick={onAddBeneficiaryClick}>
         Add beneficiary
       </Button>
     </Card>
@@ -332,12 +340,12 @@ export function Dashboard() {
             </Card>
           )}
 
-          {tierCard}
+          {renderTierCard('secondary')}
         </div>
 
         <div className={styles.statsGrid}>
-          {repeatCard}
-          {quickSendCard}
+          {renderRepeatCard('secondary')}
+          {renderQuickSendCard('secondary')}
         </div>
 
         {activitySection}
@@ -373,13 +381,13 @@ export function Dashboard() {
           )}
         </div>
 
-        {quickSendCard}
+        {renderQuickSendCard('ghost')}
 
         {teaserText && <div className={styles.teaserRow}>{teaserText}</div>}
 
-        {repeatCard}
+        {renderRepeatCard('ghost')}
 
-        {tierCard}
+        {renderTierCard('ghost')}
 
         {activitySection}
       </div>
