@@ -1,5 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom'
-import { Avatar, Button } from '../../design-system/components'
+import { Avatar } from '../../design-system/components'
 import { currentUser } from '../../mocks/user'
 import type { Beneficiary } from '../../mocks/beneficiaries'
 import type { Provider, ProviderStatus } from '../../mocks/providers'
@@ -21,6 +21,7 @@ interface SendMoneyPrefill {
 
 export interface AppShellProps {
   onSendMoneyClick: (prefill?: SendMoneyPrefill) => void
+  onCheckRatesClick: () => void
   /**
    * Lifted to App.tsx in M17/M18 so the Beneficiaries/Providers screens
    * and the Send Money flow all read/write the same lists — mirrors the
@@ -36,6 +37,7 @@ export interface AppShellProps {
 
 export interface AppOutletContext {
   onSendMoneyClick: (prefill?: SendMoneyPrefill) => void
+  onCheckRatesClick: () => void
   beneficiaries: Beneficiary[]
   onAddBeneficiary: (beneficiary: Beneficiary) => void
   providers: Provider[]
@@ -56,9 +58,16 @@ const navLinkClass = ({ isActive }: { isActive: boolean }) =>
  * CTA above it. It's an action, not a destination — styling it as a
  * plain nav link (as M11 originally did) implied it was a page you
  * navigate to and stay on, which isn't what happens.
+ *
+ * M24: that sidebar CTA is gone again — redundant once every page that
+ * needs one has its own entry point (Home's header CTA, the mobile
+ * bottom nav's raised Send button, and now the rate-checker's own
+ * "Compare rates" hand-off). A second global button competing with
+ * those added noise without adding a capability.
  */
 export function AppShell({
   onSendMoneyClick,
+  onCheckRatesClick,
   beneficiaries,
   onAddBeneficiary,
   providers,
@@ -75,22 +84,18 @@ export function AppShell({
             <span className={`ds-text-label ${styles.brandName}`}>RemitOne</span>
           </div>
 
-          <Button variant="primary" fullWidth onClick={() => onSendMoneyClick()}>
-            Send money
-          </Button>
-
           <nav className={styles.sidebarNav}>
             <NavLink to="/" end className={navLinkClass}>
               Home
+            </NavLink>
+            <NavLink to="/activity" className={navLinkClass}>
+              Activity
             </NavLink>
             <NavLink to="/beneficiaries" className={navLinkClass}>
               Beneficiaries
             </NavLink>
             <NavLink to="/providers" className={navLinkClass}>
               Providers
-            </NavLink>
-            <NavLink to="/activity" className={navLinkClass}>
-              Activity
             </NavLink>
           </nav>
 
@@ -110,7 +115,7 @@ export function AppShell({
         <main className={styles.main}>
           <Outlet
             context={
-              { onSendMoneyClick, beneficiaries, onAddBeneficiary, providers, onUpdateProviderStatus } satisfies AppOutletContext
+              { onSendMoneyClick, onCheckRatesClick, beneficiaries, onAddBeneficiary, providers, onUpdateProviderStatus } satisfies AppOutletContext
             }
           />
         </main>

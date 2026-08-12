@@ -1,8 +1,10 @@
+import type { ReactNode } from 'react'
 import { Badge } from '../Badge'
 import type { BadgeKind } from '../Badge'
 import styles from './TransactionRow.module.css'
 
 export type TransactionDirection = 'incoming' | 'outgoing'
+export type TransactionIconTone = 'muted' | 'savings' | 'brand'
 
 export interface TransactionRowProps {
   name: string
@@ -11,6 +13,10 @@ export interface TransactionRowProps {
   direction: TransactionDirection
   status: BadgeKind
   statusLabel: string
+  /** Overrides the default direction arrow — for activity feed entries that aren't a transfer (cashback, wallet top-up). */
+  icon?: ReactNode
+  /** Recolors the icon's circular background. Default 'muted' matches the original arrow treatment. */
+  iconTone?: TransactionIconTone
 }
 
 const ArrowIcon = ({ direction }: { direction: TransactionDirection }) => (
@@ -46,11 +52,13 @@ export function TransactionRow({
   direction,
   status,
   statusLabel,
+  icon,
+  iconTone = 'muted',
 }: TransactionRowProps) {
   return (
     <div className={styles.row}>
-      <span className={styles.icon}>
-        <ArrowIcon direction={direction} />
+      <span className={`${styles.icon} ${styles[iconTone]}`}>
+        {icon ?? <ArrowIcon direction={direction} />}
       </span>
       <div className={styles.mid}>
         <span className={`ds-text-label ${styles.name}`}>{name}</span>

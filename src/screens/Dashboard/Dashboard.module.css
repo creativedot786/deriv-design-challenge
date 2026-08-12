@@ -75,53 +75,17 @@
   flex-direction: column;
 }
 
-/* ---------- Rate checker — the new hero ---------- */
-.checkerCard {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-  /* A featured-card accent (not the dark Spotlight treatment, which
-     Wallet reclaims below) — Card only allows one Spotlight per screen,
-     and this is a tool, not a "look at your money" moment. */
-  border-top: 3px solid var(--border-brand);
-}
-
-.checkerFields {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: var(--space-2);
-}
-
-.checkerField {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-}
-
-.swapButton {
-  align-self: center;
+/* ---------- Rate teaser ---------- */
+.teaserCard {
   display: flex;
   align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: var(--radius-full);
-  background: var(--bg-surface-muted);
-  color: var(--text-secondary);
-  border: none;
-  cursor: pointer;
-}
-
-.swapButton:hover {
-  background: var(--bg-brand-muted);
-  color: var(--text-brand);
-}
-
-.checkerResults {
-  display: flex;
-  flex-direction: column;
+  justify-content: space-between;
+  flex-wrap: wrap;
   gap: var(--space-3);
+  /* A featured-card accent (not the dark Spotlight treatment, which
+     Wallet reclaims below) — Card only allows one Spotlight per screen,
+     and this is a passive hint, not a "look at your money" moment. */
+  border-top: 3px solid var(--border-brand);
 }
 
 /* ---------- Repeat transfer + Wallet ---------- */
@@ -143,6 +107,9 @@
   flex-direction: column;
   align-items: flex-start;
   gap: var(--space-2);
+  /* Elevated's default padding already matches — set explicitly so this
+     pairing doesn't silently drift if Card's variant padding changes. */
+  padding: var(--space-5);
 }
 
 .repeatMain {
@@ -165,8 +132,12 @@
 .walletCard {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1);
-  justify-content: center;
+  align-items: flex-start;
+  gap: var(--space-2);
+  /* Spotlight defaults to --space-6 padding — overridden to --space-5 so
+     its caption starts at the same Y as repeatCard's, not offset by the
+     8px difference between the two Card variants' padding. */
+  padding: var(--space-5);
 }
 
 /* ---------- Tier + Quick send ---------- */
@@ -187,11 +158,12 @@
   flex-direction: column;
   align-items: flex-start;
   gap: var(--space-2);
-  justify-content: center;
+  padding: var(--space-5);
 }
 
 .quickSendCard {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
+  padding: var(--space-5);
 }

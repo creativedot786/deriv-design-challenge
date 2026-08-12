@@ -1,15 +1,12 @@
 import { useEffect, useState } from 'react'
+import type { ReactNode } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import {
-  AmountInput,
   Button,
   Card,
-  ComparisonRow,
-  CountrySelector,
   EmptyState,
   ProgressMeter,
   QuickSendItem,
-  SegmentedControl,
   Skeleton,
   TierBadge,
   TransactionRow,
@@ -17,9 +14,10 @@ import {
 import type { BadgeKind } from '../../design-system/components'
 import type { AppOutletContext } from '../AppShell'
 import { corridors } from '../../mocks/corridors'
-import { groupTransfersByDate, lastTransfer, transfers } from '../../mocks/transfers'
+import { lastTransfer } from '../../mocks/transfers'
+import { buildActivityFeed, groupActivityByDate } from '../../mocks/activity'
+import type { ActivityKind } from '../../mocks/activity'
 import { quoteFor, rankProviderRates } from '../../mocks/rates'
-import type { RateSortBy } from '../../mocks/rates'
 import { currentUserTierProgress, nextTier, tierById } from '../../mocks/tiers'
 import { wallet } from '../../mocks/fundingMethods'
 import styles from './Dashboard.module.css'
@@ -31,15 +29,38 @@ const InboxIcon = () => (
   </svg>
 )
 
-const SwapIcon = () => (
+const CashbackIcon = () => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-    <polyline points="17 1 21 5 17 9" />
-    <path d="M3 11V9a4 4 0 0 1 4-4h14" />
-    <polyline points="7 23 3 19 7 15" />
-    <path d="M21 13v2a4 4 0 0 1-4 4H3" />
+    <circle cx="12" cy="12" r="10" />
+    <line x1="8" y1="16" x2="16" y2="8" />
+    <circle cx="8.5" cy="8.5" r="0.5" fill="currentColor" />
+    <circle cx="15.5" cy="15.5" r="0.5" fill="currentColor" />
   </svg>
 )
 
+const TopupIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4" />
+    <path d="M3 5v14a2 2 0 0 0 2 2h16v-5" />
+    <path d="M18 12a2 2 0 0 0 0 4h4v-4z" />
+    <line x1="12" y1="9" x2="12" y2="13" />
+    <line x1="10" y1="11" x2="14" y2="11" />
+  </svg>
+)
+
+const activityIcon: Partial<Record<ActivityKind, ReactNode>> = {
+  cashback: <CashbackIcon />,
+  topup: <TopupIcon />,
+}
+const activityIconTone: Partial<Record<ActivityKind, 'savings' | 'brand'>> = {
+  cashback: 'savings',
+  topup: 'brand',
+}
+const activityDirection: Record<ActivityKind, 'incoming' | 'outgoing'> = {
+  transfer: 'outgoing',
+  cashback: 'incoming',
+  topup: 'incoming',
+}
 const statusBadgeKind: Record<string, BadgeKind> = {
   completed: 'success',
   scheduled: 'neutral',
@@ -51,27 +72,24 @@ const statusLabel: Record<string, string> = {
   failed: 'Failed',
 }
 
-const DEFAULT_CHECKER_CORRIDOR = 'c-pk'
-const DEFAULT_CHECKER_AMOUNT = '200.00'
+// Representative amount for the teaser's "who's cheapest right now"
+// hint — not the actual rate-checker default (that lives in
+// RateCheckerModal), just enough to rank providers for one line of copy.
+const TEASER_CORRIDOR = 'c-pk'
+const TEASER_AMOUNT_AED = 200
 
 /**
- * M23 — rework of the M20 rebuild based on direct feedback:
- * - Rate Checker is now the hero (was buried below Repeat/stats) —
- *   the comparison moment is this product's actual differentiation,
- *   per the discovery doc, so it leads rather than a repeat-send
- *   shortcut. Independent of any beneficiary on purpose — "just
- *   checking" is a different job than "about to send," see the M19
- *   doc comment on why the Send flow itself doesn't have this.
- * - Wallet reclaims the Spotlight hero card it had before M20;
- *   Repeat-transfer shrinks to a light card beside it instead of
- *   competing for the same dark-hero weight.
- * - Providers stat removed entirely (redundant with /providers).
- * - Quick Send and Recent Transfers get the same Card+divider
- *   treatment Beneficiaries/Providers/Activity already have —
- *   the one thing M19 didn't reach.
+ * M24 rework of the M23 hero: that version inlined the entire rate
+ * checker (country selector, swap fields, sort, full results list) onto
+ * the page, and it turned out to be the wrong shape — the feedback was
+ * that the compact one-liner teaser from M20 already worked as an entry
+ * point ("clicking compare rates opening in modal works"), it was the
+ * modal's own functionality that needed the swap/independent-country
+ * rework. So the tool now lives in RateCheckerModal; Home just hands off
+ * to it. See RateCheckerModal.tsx.
  */
 export function Dashboard() {
-  const { onSendMoneyClick, beneficiaries, providers } = useOutletContext<AppOutletContext>()
+  const { onSendMoneyClick, onCheckRatesClick, beneficiaries, providers } = useOutletContext<AppOutletContext>()
   const [isLoading, setIsLoading] = useState(true)
 
   // Simulates the initial data fetch — no backend, but the loading
@@ -81,45 +99,10 @@ export function Dashboard() {
     return () => clearTimeout(timer)
   }, [])
 
-  // ---------- Rate checker ----------
-  const [checkerDirection, setCheckerDirection] = useState<'send' | 'receive'>('send')
-  const [checkerRawAmount, setCheckerRawAmount] = useState(DEFAULT_CHECKER_AMOUNT)
-  const [checkerCorridorId, setCheckerCorridorId] = useState(DEFAULT_CHECKER_CORRIDOR)
-  const [checkerSortBy, setCheckerSortBy] = useState<RateSortBy>('amount')
-
-  const checkerCorridor = corridors.find((c) => c.id === checkerCorridorId)!
-  const checkerRawNumeric = Number.parseFloat(checkerRawAmount)
-  // Editing "They get" back-calculates AED using the corridor's
-  // mid-market rate as a stable reference — not any one provider's
-  // rate, which would create a circular "which provider sets the
-  // amount that ranks the providers" problem.
-  const checkerSendAmountAed =
-    checkerDirection === 'send'
-      ? checkerRawNumeric
-      : Number.isNaN(checkerRawNumeric)
-        ? Number.NaN
-        : checkerRawNumeric / checkerCorridor.midMarketRate
-  const isCheckerValid = !Number.isNaN(checkerSendAmountAed) && checkerSendAmountAed > 0
-
-  const checkerRanked = isCheckerValid ? rankProviderRates(checkerCorridorId, checkerSendAmountAed, providers, checkerSortBy) : []
-  const checkerTopReceive = checkerRanked[0]?.quote?.recipientReceives
-
-  const checkerSendDisplay = checkerDirection === 'send' ? checkerRawAmount : isCheckerValid ? checkerSendAmountAed.toFixed(2) : '0.00'
-  const checkerReceiveDisplay =
-    checkerDirection === 'receive' ? checkerRawAmount : checkerTopReceive !== undefined ? checkerTopReceive.toFixed(2) : '0.00'
-
-  // Preserves whatever's currently on screen when flipping which side
-  // is editable, instead of resetting to a stale raw number that meant
-  // something different in the other currency.
-  const handleSwap = () => {
-    if (checkerDirection === 'send') {
-      setCheckerRawAmount(checkerReceiveDisplay)
-      setCheckerDirection('receive')
-    } else {
-      setCheckerRawAmount(checkerSendDisplay)
-      setCheckerDirection('send')
-    }
-  }
+  // ---------- Rate teaser ----------
+  const teaserCorridor = corridors.find((c) => c.id === TEASER_CORRIDOR)!
+  const teaserRanked = rankProviderRates(TEASER_CORRIDOR, TEASER_AMOUNT_AED, providers, 'amount')
+  const teaserBest = teaserRanked[0]
 
   // ---------- Repeat last transfer ----------
   const lastBeneficiary = beneficiaries.find((b) => b.id === lastTransfer.beneficiaryId)
@@ -147,7 +130,7 @@ export function Dashboard() {
     : 100
 
   const favoriteBeneficiaries = beneficiaries.filter((b) => b.isFavorite)
-  const groups = groupTransfersByDate(transfers)
+  const activityGroups = groupActivityByDate(buildActivityFeed(beneficiaries, providers))
 
   return (
     <>
@@ -163,88 +146,22 @@ export function Dashboard() {
         </div>
       </div>
 
-      {/* ---------- Rate checker — the hero ---------- */}
-      <Card variant="elevated" className={styles.checkerCard}>
-        <p className="ds-text-h2">Check today's rates</p>
-
-        <CountrySelector
-          label="Receiving in"
-          options={corridors.map((c) => ({ id: c.id, countryName: c.countryName, currencyCode: c.currencyCode, flag: c.flag }))}
-          value={checkerCorridorId}
-          onChange={setCheckerCorridorId}
-        />
-
-        <div className={styles.checkerFields}>
-          <div className={styles.checkerField}>
-            <span className="ds-text-caption" style={{ color: 'var(--text-muted)' }}>
-              You send
-            </span>
-            <AmountInput
-              value={checkerSendDisplay}
-              currencyLabel="AED"
-              onChange={(e) => {
-                setCheckerDirection('send')
-                setCheckerRawAmount(e.target.value)
-              }}
-            />
-          </div>
-
-          <button type="button" className={styles.swapButton} onClick={handleSwap} aria-label="Switch which amount you're entering">
-            <SwapIcon />
-          </button>
-
-          <div className={styles.checkerField}>
-            <span className="ds-text-caption" style={{ color: 'var(--text-muted)' }}>
-              They get
-            </span>
-            <AmountInput
-              value={checkerReceiveDisplay}
-              currencyLabel={checkerCorridor.currencyCode}
-              onChange={(e) => {
-                setCheckerDirection('receive')
-                setCheckerRawAmount(e.target.value)
-              }}
-            />
-          </div>
-        </div>
-
-        <SegmentedControl
-          aria-label="Sort providers by"
-          value={checkerSortBy}
-          onChange={setCheckerSortBy}
-          options={[
-            { value: 'amount', label: 'Recipient gets most' },
-            { value: 'fast', label: 'Fastest' },
-            { value: 'cheap', label: 'Lowest cost' },
-          ]}
-        />
-
-        <div className={styles.checkerResults}>
-          {checkerRanked.map(({ rate, provider, quote, isMostReceived, isFastest }) => {
-            const rankLabel =
-              isMostReceived && isFastest ? 'Most received · Fastest' : isMostReceived ? 'Most received' : isFastest ? 'Fastest' : undefined
-            return (
-              <ComparisonRow
-                key={provider.id}
-                providerName={provider.name}
-                providerInitials={provider.initials}
-                isConnected={provider.status === 'connected'}
-                recipientReceivesLabel={quote ? `${checkerCorridor.currencySymbol}${quote.recipientReceives.toFixed(2)}` : '—'}
-                rateLabel={`1 AED = ${rate.exchangeRate} ${checkerCorridor.currencyCode}`}
-                feeLabel={rate.feeAed === 0 ? 'No fee' : `AED ${rate.feeAed} fee`}
-                deliveryEtaLabel={rate.deliveryEtaLabel}
-                asOfLabel={rate.asOfLabel}
-                rankLabel={rankLabel}
-              />
-            )
-          })}
-        </div>
-      </Card>
+      {/* ---------- Rate teaser ---------- */}
+      {teaserBest?.quote && (
+        <Card variant="elevated" className={styles.teaserCard}>
+          <span className="ds-text-label">
+            Sending to {teaserCorridor.countryName} today? {teaserBest.provider.name} gives the most right now.
+          </span>
+          <Button variant="link" onClick={onCheckRatesClick}>
+            Compare rates
+          </Button>
+        </Card>
+      )}
 
       {/* ---------- Repeat transfer + Wallet, side by side ---------- */}
       <div className={styles.heroGrid}>
         {isLoading ? (
-          <Card variant="elevated">
+          <Card variant="elevated" className={styles.repeatCard}>
             <Skeleton width={120} height={12} />
             <div style={{ height: 10 }} />
             <Skeleton width={160} height={20} />
@@ -276,7 +193,7 @@ export function Dashboard() {
         ) : null}
 
         {isLoading ? (
-          <Card variant="spotlight">
+          <Card variant="spotlight" className={styles.walletCard}>
             <Skeleton inverse width={120} height={12} />
             <div style={{ height: 10 }} />
             <Skeleton inverse width={160} height={24} />
@@ -290,6 +207,7 @@ export function Dashboard() {
             <p className="ds-text-caption" style={{ color: 'var(--text-inverse-muted)' }}>
               + AED {wallet.cashbackEarnedAed.toFixed(2)} cashback earned
             </p>
+            <Button variant="secondary">Add money</Button>
           </Card>
         )}
       </div>
@@ -309,11 +227,17 @@ export function Dashboard() {
             </span>
             <TierBadge label={tier.name} colorVar={tier.colorVar} mutedVar={tier.mutedVar} />
             {next && (
-              <ProgressMeter
-                value={tierProgressPct}
-                label={`AED ${currentUserTierProgress.sentLast12MonthsAed.toLocaleString()} of ${next.thresholdAed.toLocaleString()} to ${next.name}`}
-                colorVar={tier.colorVar}
-              />
+              <>
+                <ProgressMeter
+                  value={tierProgressPct}
+                  label={`AED ${currentUserTierProgress.sentLast12MonthsAed.toLocaleString()} of ${next.thresholdAed.toLocaleString()} to ${next.name}`}
+                  colorVar={tier.colorVar}
+                />
+                <span className="ds-text-caption" style={{ color: 'var(--text-muted)' }}>
+                  Reach {next.name} for {next.perkLabel}
+                </span>
+                <Button variant="link">Learn more</Button>
+              </>
             )}
           </Card>
         )}
@@ -345,9 +269,9 @@ export function Dashboard() {
         </Card>
       </div>
 
-      {/* ---------- Recent transfers ---------- */}
+      {/* ---------- Activity ---------- */}
       <div className={styles.section}>
-        <p className="ds-text-h2">Recent transfers</p>
+        <p className="ds-text-h2">Activity</p>
         {isLoading ? (
           <Card variant="elevated" className={styles.listCard}>
             {Array.from({ length: 3 }).map((_, i) => (
@@ -361,31 +285,28 @@ export function Dashboard() {
               </div>
             ))}
           </Card>
-        ) : groups.size === 0 ? (
+        ) : activityGroups.size === 0 ? (
           <Card variant="flat">
-            <EmptyState icon={<InboxIcon />} title="No transfers yet" subtext="Your recent transfers will show up here." />
+            <EmptyState icon={<InboxIcon />} title="No activity yet" subtext="Your transfers, cashback, and top-ups will show up here." />
           </Card>
         ) : (
-          [...groups.entries()].map(([dateGroup, items]) => (
+          [...activityGroups.entries()].map(([dateGroup, items]) => (
             <div key={dateGroup} className={styles.txGroup}>
               <span className={`ds-text-caption ${styles.txGroupLabel}`}>{dateGroup}</span>
               <Card variant="elevated" className={styles.listCard}>
-                {items.map((t) => {
-                  const b = beneficiaries.find((ben) => ben.id === t.beneficiaryId)
-                  const p = providers.find((prov) => prov.id === t.providerId)
-                  if (!b || !p) return null
-                  return (
-                    <TransactionRow
-                      key={t.id}
-                      name={b.name}
-                      meta={`${t.dateLabel} · via ${p.shortName}`}
-                      amount={`-AED ${t.amountAed.toFixed(2)}`}
-                      direction="outgoing"
-                      status={statusBadgeKind[t.status]}
-                      statusLabel={statusLabel[t.status]}
-                    />
-                  )
-                })}
+                {items.map((item) => (
+                  <TransactionRow
+                    key={item.id}
+                    name={item.title}
+                    meta={item.subtitle}
+                    amount={item.amountLabel}
+                    direction={activityDirection[item.kind]}
+                    status={statusBadgeKind[item.status]}
+                    statusLabel={statusLabel[item.status]}
+                    icon={activityIcon[item.kind]}
+                    iconTone={activityIconTone[item.kind]}
+                  />
+                ))}
               </Card>
             </div>
           ))
