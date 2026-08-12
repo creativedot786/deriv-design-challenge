@@ -4,6 +4,7 @@
   align-items: center;
   gap: var(--space-2);
   width: 100%;
+  min-width: 0;
   padding: var(--space-6) 0;
 }
 
@@ -11,6 +12,12 @@
   display: flex;
   align-items: baseline;
   gap: var(--space-1);
+  max-width: 100%;
+  /* Without this a flex row won't shrink below its content's intrinsic
+     width, which pushes every ancestor (modal panel included) wider
+     than the viewport instead of letting this row's own overflow
+     handling kick in. */
+  min-width: 0;
 }
 
 .currency {
@@ -23,8 +30,12 @@
   background: transparent;
   border: none;
   outline: none;
+  /* Sized by the `size` attribute (see AmountInput.tsx) so it grows
+     with digit count — max-width is just a backstop against the row's
+     own available space, not the primary sizing mechanism anymore. */
   width: auto;
-  max-width: 220px;
+  max-width: 100%;
+  min-width: 0;
   text-align: left;
 }
 

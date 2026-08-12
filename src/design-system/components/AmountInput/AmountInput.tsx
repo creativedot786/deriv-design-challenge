@@ -25,7 +25,7 @@ function sanitizeAmount(raw: string): string {
   )
 }
 
-export function AmountInput({ helperText, errorText, currencyLabel = 'AED', onChange, ...rest }: AmountInputProps) {
+export function AmountInput({ helperText, errorText, currencyLabel = 'AED', onChange, value, ...rest }: AmountInputProps) {
   const isError = Boolean(errorText)
   const message = errorText ?? helperText
 
@@ -48,6 +48,14 @@ export function AmountInput({ helperText, errorText, currencyLabel = 'AED', onCh
           aria-label="Amount to send"
           aria-invalid={isError || undefined}
           onChange={handleChange}
+          value={value}
+          // A bare <input> doesn't size itself to its value the way a
+          // <div> would — `size` is what actually grows/shrinks the box
+          // with the digit count (a 6-figure PKR amount needs more room
+          // than "0.00"). CSS `max-width` alone left large numbers
+          // clipped mid-digit — confirmed via scrollWidth > clientWidth
+          // on an 8-character value in a 220px-capped box.
+          size={Math.max(String(value ?? '').length, 1)}
           {...rest}
         />
       </div>

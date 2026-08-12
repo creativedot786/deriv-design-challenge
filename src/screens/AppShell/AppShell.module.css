@@ -174,34 +174,31 @@
   color: var(--text-brand);
 }
 
-/* M19 — Send is an action, not a destination; the filled circular icon
-   (vs. the other items' plain stroke icons) signals that distinction
-   while still fitting in the same 4-item bar, matching the sidebar's
-   CTA-button treatment above the nav list. */
-.bottomNavSend {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-1);
-  color: var(--text-secondary);
-  background: none;
-  border: none;
-  font-family: inherit;
-  font-size: 11px;
-  font-weight: 500;
-  cursor: pointer;
-}
-
-.bottomNavSendIcon {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: var(--bg-brand);
-  color: var(--text-inverse);
+/* M27 — replaces the bottom nav's raised Send button. Fixed independent
+   of the nav bar (not one of its flex items) so it reads as an action
+   floating above the page, not a fifth destination in a 4-item bar.
+   Desktop hides it — the sidebar's pages all reach Send via Home's
+   header CTA or don't need one. */
+.fab {
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: var(--shadow-sm);
-  margin-top: -4px;
+  position: fixed;
+  right: var(--space-4);
+  bottom: calc(64px + var(--space-4));
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--bg-brand);
+  color: var(--text-inverse);
+  border: none;
+  cursor: pointer;
+  box-shadow: var(--shadow-md);
+  z-index: 90;
+}
+
+@media (min-width: 860px) {
+  .fab {
+    display: none;
+  }
 }

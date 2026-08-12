@@ -50,43 +50,10 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
+  min-width: 0;
   background: var(--bg-surface-muted);
   border-radius: var(--radius-lg);
   padding: var(--space-4);
-}
-
-.fields {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: var(--space-2);
-}
-
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-}
-
-.swapButton {
-  align-self: center;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: var(--radius-full);
-  /* White, not the panel's own muted tone — needs to read as a control
-     sitting on the panel, not blend into it. */
-  background: var(--bg-surface);
-  color: var(--text-secondary);
-  border: none;
-  cursor: pointer;
-}
-
-.swapButton:hover {
-  background: var(--bg-brand-muted);
-  color: var(--text-brand);
 }
 
 .results {

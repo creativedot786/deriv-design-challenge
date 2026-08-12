@@ -4,6 +4,38 @@
  * covers what Dashboard renders inside <AppShell>'s <main>.
  */
 
+/* M27 — mobile isn't just desktop's grid collapsed to one column
+   anymore (different card order, Wallet folds into a hero instead of
+   staying its own card, the teaser loses its box). Both blocks are
+   always mounted; only one is ever visible — same CSS-display-toggle
+   approach this file already used for .headerCta/.mobileCta, just
+   covering the whole page now instead of one button. Each replicates
+   .main's own flex gap since it's now the direct flex child instead of
+   the individual cards being. */
+.desktopOnly {
+  display: none;
+}
+
+@media (min-width: 860px) {
+  .desktopOnly {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+  }
+}
+
+.mobileOnly {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+@media (min-width: 860px) {
+  .mobileOnly {
+    display: none;
+  }
+}
+
 .header {
   display: flex;
   align-items: center;
@@ -31,19 +63,16 @@
   }
 }
 
-.mobileCta {
-  display: block;
-}
-
-@media (min-width: 860px) {
-  .mobileCta {
-    display: none;
-  }
-}
-
 .section {
   display: flex;
   flex-direction: column;
+  gap: var(--space-3);
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   gap: var(--space-3);
 }
 
@@ -86,6 +115,43 @@
      Wallet reclaims below) — Card only allows one Spotlight per screen,
      and this is a passive hint, not a "look at your money" moment. */
   border-top: 3px solid var(--border-brand);
+}
+
+/* Mobile's borderless equivalent of .teaserCard — a plain row relying
+   on page spacing for separation, per the "not everything needs to be
+   a box" direction; the accent border would just be decoration with
+   nothing else to visually separate it from. */
+.teaserRow {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+/* ---------- Mobile hero: greeting + Wallet merged ---------- */
+.mobileHero {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+  color: var(--text-inverse);
+  /* Bleeds past .main's own padding to sit edge-to-edge, then restores
+     that space as its own padding — a masthead, not another card. */
+  margin: calc(var(--space-5) * -1) calc(var(--space-5) * -1) 0;
+  padding: var(--space-6) var(--space-5) var(--space-7);
+  background: linear-gradient(135deg, var(--bg-brand) 0%, var(--bg-inverse) 100%);
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+}
+
+.mobileHeroLabel {
+  color: var(--text-inverse-muted);
+}
+
+.mobileHeroDivider {
+  width: 100%;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.16);
+  margin-block: var(--space-3);
 }
 
 /* ---------- Wallet + Tier ---------- */

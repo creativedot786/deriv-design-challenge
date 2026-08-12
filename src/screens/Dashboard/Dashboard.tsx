@@ -75,14 +75,16 @@ const TEASER_CORRIDOR = 'c-pk'
 const TEASER_AMOUNT_AED = 200
 
 /**
- * M24 rework of the M23 hero: that version inlined the entire rate
- * checker (country selector, swap fields, sort, full results list) onto
- * the page, and it turned out to be the wrong shape — the feedback was
- * that the compact one-liner teaser from M20 already worked as an entry
- * point ("clicking compare rates opening in modal works"), it was the
- * modal's own functionality that needed the swap/independent-country
- * rework. So the tool now lives in RateCheckerModal; Home just hands off
- * to it. See RateCheckerModal.tsx.
+ * M27 — mobile gets its own layout, not just a reflowed version of
+ * desktop's. Direct feedback: the bottom nav's Send button isn't a
+ * destination (moved to a floating action button, see AppShell), the
+ * dashboard was "too many boxes" for a phone screen, and Wallet should
+ * lead — merged into a gradient hero with the greeting instead of
+ * competing with it as a separate card. Desktop's grid layout is
+ * untouched; `.desktopOnly`/`.mobileOnly` below are pure CSS-display
+ * toggles (same pattern this file already used for `.headerCta`/
+ * `.mobileCta`), not two different data models — every card's content
+ * is computed once and rendered into whichever layout is visible.
  */
 export function Dashboard() {
   const { onSendMoneyClick, onCheckRatesClick, beneficiaries, providers } = useOutletContext<AppOutletContext>()
@@ -129,194 +131,257 @@ export function Dashboard() {
   const favoriteBeneficiaries = beneficiaries.filter((b) => b.isFavorite)
   const activityGroups = groupActivityByDate(buildActivityFeed(beneficiaries, providers))
 
-  return (
+  // ---------- Shared pieces, composed differently per breakpoint below ----------
+
+  const teaserText = teaserBest?.quote && (
     <>
-      <div className={styles.header}>
-        <div className={styles.greeting}>
-          <span className={`ds-text-caption ${styles.greetingLabel}`}>Good afternoon</span>
-          <span className="ds-text-h1">Jordan Diaz</span>
-        </div>
-        <div className={styles.headerCta}>
-          <Button variant="primary" onClick={() => onSendMoneyClick()}>
-            Send money
-          </Button>
-        </div>
-      </div>
+      <span className="ds-text-label">
+        Sending to {teaserCorridor.countryName} today? {teaserBest.provider.name} gives 1 AED = {teaserBest.rate.exchangeRate}{' '}
+        {teaserCorridor.currencyCode} right now.
+      </span>
+      <Button variant="link" onClick={onCheckRatesClick}>
+        Compare rates
+      </Button>
+    </>
+  )
 
-      {/* ---------- Rate teaser ---------- */}
-      {teaserBest?.quote && (
-        <Card variant="elevated" className={styles.teaserCard}>
-          <span className="ds-text-label">
-            Sending to {teaserCorridor.countryName} today? {teaserBest.provider.name} gives 1 AED = {teaserBest.rate.exchangeRate}{' '}
-            {teaserCorridor.currencyCode} right now.
-          </span>
-          <Button variant="link" onClick={onCheckRatesClick}>
-            Compare rates
-          </Button>
-        </Card>
-      )}
-
-      {/* ---------- Wallet + Tier, side by side ---------- */}
-      <div className={styles.heroGrid}>
-        {isLoading ? (
-          <Card variant="spotlight" className={styles.walletCard}>
-            <Skeleton inverse width={120} height={12} />
-            <div style={{ height: 10 }} />
-            <Skeleton inverse width={160} height={24} />
-          </Card>
-        ) : (
-          <Card variant="spotlight" className={styles.walletCard}>
-            <p className="ds-text-caption" style={{ color: 'var(--text-inverse-muted)' }}>
-              Wallet balance
-            </p>
-            <p className="ds-text-display">AED {wallet.floatBalanceAed.toFixed(2)}</p>
-            <p className="ds-text-caption" style={{ color: 'var(--text-inverse-muted)' }}>
-              + AED {wallet.cashbackEarnedAed.toFixed(2)} cashback earned
-            </p>
-            <Button variant="secondary" className={styles.walletCta}>
-              Add money
-            </Button>
-          </Card>
-        )}
-
-        {!isLoading && (
-          <Card variant="elevated" className={styles.tierCard}>
-            <span className="ds-text-caption" style={{ color: 'var(--text-muted)' }}>
-              Tier
+  const tierCard = !isLoading && (
+    <Card variant="elevated" className={styles.tierCard}>
+      <span className="ds-text-caption" style={{ color: 'var(--text-muted)' }}>
+        Tier
+      </span>
+      <TierBadge label={tier.name} colorVar={tier.colorVar} mutedVar={tier.mutedVar} />
+      {next && (
+        <>
+          <ProgressMeter
+            value={tierProgressPct}
+            label={`AED ${currentUserTierProgress.sentLast12MonthsAed.toLocaleString()} of ${next.thresholdAed.toLocaleString()} to ${next.name}`}
+            colorVar={tier.colorVar}
+          />
+          <div className={styles.tierNextPerk}>
+            <span className="ds-text-label" style={{ color: 'var(--text-primary)' }}>
+              Reach {next.name} for {next.perkLabel}
             </span>
-            <TierBadge label={tier.name} colorVar={tier.colorVar} mutedVar={tier.mutedVar} />
-            {next && (
-              <>
-                <ProgressMeter
-                  value={tierProgressPct}
-                  label={`AED ${currentUserTierProgress.sentLast12MonthsAed.toLocaleString()} of ${next.thresholdAed.toLocaleString()} to ${next.name}`}
-                  colorVar={tier.colorVar}
-                />
-                <div className={styles.tierNextPerk}>
-                  <span className="ds-text-label" style={{ color: 'var(--text-primary)' }}>
-                    Reach {next.name} for {next.perkLabel}
-                  </span>
-                  <Button variant="secondary">Learn more</Button>
-                </div>
-              </>
-            )}
-          </Card>
-        )}
-      </div>
+            <Button variant="secondary">Learn more</Button>
+          </div>
+        </>
+      )}
+    </Card>
+  )
 
-      <div className={styles.mobileCta}>
-        <Button variant="primary" fullWidth onClick={() => onSendMoneyClick()}>
-          Send money
+  const repeatCard = isLoading ? (
+    <Card variant="elevated" className={styles.repeatCard}>
+      <Skeleton width={120} height={12} />
+      <div style={{ height: 10 }} />
+      <Skeleton width={160} height={20} />
+    </Card>
+  ) : (
+    lastBeneficiary &&
+    lastProvider &&
+    lastCorridor &&
+    lastQuote && (
+      <Card variant="elevated" className={styles.repeatCard}>
+        <p className="ds-text-caption" style={{ color: 'var(--text-muted)' }}>
+          Repeat last transfer
+        </p>
+        <div className={styles.repeatMain}>
+          <span className={styles.repeatFlag} aria-hidden="true">
+            {lastCorridor.flag}
+          </span>
+          <div className={styles.repeatMid}>
+            <span className="ds-text-label">{lastBeneficiary.name}</span>
+            <span className="ds-text-caption" style={{ color: 'var(--text-muted)' }}>
+              via {lastProvider.name}
+            </span>
+          </div>
+        </div>
+        <p className="ds-text-body" style={{ color: 'var(--text-secondary)' }}>
+          AED {lastTransfer.amountAed.toFixed(2)} → {lastCorridor.currencySymbol}
+          {lastQuote.recipientReceives.toFixed(2)}
+        </p>
+        <Button variant="secondary" onClick={handleRepeat} className={styles.repeatCta}>
+          Repeat transfer
+        </Button>
+      </Card>
+    )
+  )
+
+  const quickSendCard = (
+    <Card variant="elevated" className={styles.quickSendCard}>
+      <span className="ds-text-caption" style={{ color: 'var(--text-muted)' }}>
+        Quick send
+      </span>
+      {isLoading ? (
+        <div className={styles.quickSendRow}>
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} width={48} height={48} circle />
+          ))}
+        </div>
+      ) : (
+        <div className={styles.quickSendRow}>
+          {favoriteBeneficiaries.map((b) => {
+            const c = corridors.find((corr) => corr.id === b.corridorId)!
+            return (
+              <QuickSendItem
+                key={b.id}
+                initials={b.initials}
+                name={b.name.split(' ')[0]}
+                flag={c.flag}
+                onClick={() => onSendMoneyClick({ beneficiaryId: b.id })}
+              />
+            )
+          })}
+        </div>
+      )}
+      <Button variant="secondary" className={styles.quickSendCta} onClick={() => navigate('/beneficiaries')}>
+        Add beneficiary
+      </Button>
+    </Card>
+  )
+
+  const activitySection = (
+    <div className={styles.section}>
+      <div className={styles.sectionHeader}>
+        <p className="ds-text-h2">Activity</p>
+        <Button variant="link" onClick={() => navigate('/activity')}>
+          See all
         </Button>
       </div>
-
-      {/* ---------- Repeat transfer + Quick send, side by side ---------- */}
-      <div className={styles.statsGrid}>
-        {isLoading ? (
-          <Card variant="elevated" className={styles.repeatCard}>
-            <Skeleton width={120} height={12} />
-            <div style={{ height: 10 }} />
-            <Skeleton width={160} height={20} />
-          </Card>
-        ) : lastBeneficiary && lastProvider && lastCorridor && lastQuote ? (
-          <Card variant="elevated" className={styles.repeatCard}>
-            <p className="ds-text-caption" style={{ color: 'var(--text-muted)' }}>
-              Repeat last transfer
-            </p>
-            <div className={styles.repeatMain}>
-              <span className={styles.repeatFlag} aria-hidden="true">
-                {lastCorridor.flag}
-              </span>
-              <div className={styles.repeatMid}>
-                <span className="ds-text-label">{lastBeneficiary.name}</span>
-                <span className="ds-text-caption" style={{ color: 'var(--text-muted)' }}>
-                  via {lastProvider.name}
-                </span>
+      {isLoading ? (
+        <Card variant="elevated" className={styles.listCard}>
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', padding: 'var(--space-3) var(--space-4)' }}>
+              <Skeleton width={40} height={40} circle />
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 'var(--space-1)' }}>
+                <Skeleton width="60%" height={14} />
+                <Skeleton width="30%" height={12} />
               </div>
+              <Skeleton width={60} height={14} />
             </div>
-            <p className="ds-text-body" style={{ color: 'var(--text-secondary)' }}>
-              AED {lastTransfer.amountAed.toFixed(2)} → {lastCorridor.currencySymbol}
-              {lastQuote.recipientReceives.toFixed(2)}
-            </p>
-            <Button variant="secondary" onClick={handleRepeat} className={styles.repeatCta}>
-              Repeat transfer
-            </Button>
-          </Card>
-        ) : null}
-
-        <Card variant="elevated" className={styles.quickSendCard}>
-          <span className="ds-text-caption" style={{ color: 'var(--text-muted)' }}>
-            Quick send
-          </span>
-          {isLoading ? (
-            <div className={styles.quickSendRow}>
-              {Array.from({ length: 4 }).map((_, i) => (
-                <Skeleton key={i} width={48} height={48} circle />
-              ))}
-            </div>
-          ) : (
-            <div className={styles.quickSendRow}>
-              {favoriteBeneficiaries.map((b) => {
-                const c = corridors.find((corr) => corr.id === b.corridorId)!
-                return (
-                  <QuickSendItem
-                    key={b.id}
-                    initials={b.initials}
-                    name={b.name.split(' ')[0]}
-                    flag={c.flag}
-                    onClick={() => onSendMoneyClick({ beneficiaryId: b.id })}
-                  />
-                )
-              })}
-            </div>
-          )}
-          <Button variant="secondary" className={styles.quickSendCta} onClick={() => navigate('/beneficiaries')}>
-            Add beneficiary
-          </Button>
+          ))}
         </Card>
+      ) : activityGroups.size === 0 ? (
+        <Card variant="flat">
+          <EmptyState icon={<InboxIcon />} title="No activity yet" subtext="Your transfers, cashback, and top-ups will show up here." />
+        </Card>
+      ) : (
+        [...activityGroups.entries()].map(([dateGroup, items]) => (
+          <div key={dateGroup} className={styles.txGroup}>
+            <span className={`ds-text-caption ${styles.txGroupLabel}`}>{dateGroup}</span>
+            <Card variant="elevated" className={styles.listCard}>
+              {items.map((item) => (
+                <TransactionRow
+                  key={item.id}
+                  name={item.title}
+                  meta={item.subtitle}
+                  amount={item.amountLabel}
+                  direction={activityDirection[item.kind]}
+                  status={statusBadgeKind[item.status]}
+                  statusLabel={statusLabel[item.status]}
+                  icon={activityIcon[item.kind]}
+                />
+              ))}
+            </Card>
+          </div>
+        ))
+      )}
+    </div>
+  )
+
+  return (
+    <>
+      {/* ================= Desktop (>= 860px) ================= */}
+      <div className={styles.desktopOnly}>
+        <div className={styles.header}>
+          <div className={styles.greeting}>
+            <span className={`ds-text-caption ${styles.greetingLabel}`}>Good afternoon</span>
+            <span className="ds-text-h1">Jordan Diaz</span>
+          </div>
+          <div className={styles.headerCta}>
+            <Button variant="primary" onClick={() => onSendMoneyClick()}>
+              Send money
+            </Button>
+          </div>
+        </div>
+
+        {teaserText && (
+          <Card variant="elevated" className={styles.teaserCard}>
+            {teaserText}
+          </Card>
+        )}
+
+        <div className={styles.heroGrid}>
+          {isLoading ? (
+            <Card variant="spotlight" className={styles.walletCard}>
+              <Skeleton inverse width={120} height={12} />
+              <div style={{ height: 10 }} />
+              <Skeleton inverse width={160} height={24} />
+            </Card>
+          ) : (
+            <Card variant="spotlight" className={styles.walletCard}>
+              <p className="ds-text-caption" style={{ color: 'var(--text-inverse-muted)' }}>
+                Wallet balance
+              </p>
+              <p className="ds-text-display">AED {wallet.floatBalanceAed.toFixed(2)}</p>
+              <p className="ds-text-caption" style={{ color: 'var(--text-inverse-muted)' }}>
+                + AED {wallet.cashbackEarnedAed.toFixed(2)} cashback earned
+              </p>
+              <Button variant="secondary" className={styles.walletCta}>
+                Add money
+              </Button>
+            </Card>
+          )}
+
+          {tierCard}
+        </div>
+
+        <div className={styles.statsGrid}>
+          {repeatCard}
+          {quickSendCard}
+        </div>
+
+        {activitySection}
       </div>
 
-      {/* ---------- Activity ---------- */}
-      <div className={styles.section}>
-        <p className="ds-text-h2">Activity</p>
-        {isLoading ? (
-          <Card variant="elevated" className={styles.listCard}>
-            {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', padding: 'var(--space-3) var(--space-4)' }}>
-                <Skeleton width={40} height={40} circle />
-                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 'var(--space-1)' }}>
-                  <Skeleton width="60%" height={14} />
-                  <Skeleton width="30%" height={12} />
-                </div>
-                <Skeleton width={60} height={14} />
-              </div>
-            ))}
-          </Card>
-        ) : activityGroups.size === 0 ? (
-          <Card variant="flat">
-            <EmptyState icon={<InboxIcon />} title="No activity yet" subtext="Your transfers, cashback, and top-ups will show up here." />
-          </Card>
-        ) : (
-          [...activityGroups.entries()].map(([dateGroup, items]) => (
-            <div key={dateGroup} className={styles.txGroup}>
-              <span className={`ds-text-caption ${styles.txGroupLabel}`}>{dateGroup}</span>
-              <Card variant="elevated" className={styles.listCard}>
-                {items.map((item) => (
-                  <TransactionRow
-                    key={item.id}
-                    name={item.title}
-                    meta={item.subtitle}
-                    amount={item.amountLabel}
-                    direction={activityDirection[item.kind]}
-                    status={statusBadgeKind[item.status]}
-                    statusLabel={statusLabel[item.status]}
-                    icon={activityIcon[item.kind]}
-                  />
-                ))}
-              </Card>
-            </div>
-          ))
-        )}
+      {/* ================= Mobile (< 860px) ================= */}
+      <div className={styles.mobileOnly}>
+        <div className={styles.mobileHero}>
+          <span className={`ds-text-caption ${styles.mobileHeroLabel}`}>Good afternoon</span>
+          <span className="ds-text-h1" style={{ color: 'var(--text-inverse)' }}>
+            Jordan Diaz
+          </span>
+
+          {isLoading ? (
+            <>
+              <div style={{ height: 8 }} />
+              <Skeleton inverse width={120} height={12} />
+              <div style={{ height: 8 }} />
+              <Skeleton inverse width={160} height={24} />
+            </>
+          ) : (
+            <>
+              <div className={styles.mobileHeroDivider} />
+              <span className={`ds-text-caption ${styles.mobileHeroLabel}`}>Wallet balance</span>
+              <span className="ds-text-display" style={{ color: 'var(--text-inverse)' }}>
+                AED {wallet.floatBalanceAed.toFixed(2)}
+              </span>
+              <span className={`ds-text-caption ${styles.mobileHeroLabel}`}>+ AED {wallet.cashbackEarnedAed.toFixed(2)} cashback earned</span>
+              <Button variant="secondary" className={styles.walletCta}>
+                Add money
+              </Button>
+            </>
+          )}
+        </div>
+
+        {quickSendCard}
+
+        {teaserText && <div className={styles.teaserRow}>{teaserText}</div>}
+
+        {repeatCard}
+
+        {tierCard}
+
+        {activitySection}
       </div>
     </>
   )

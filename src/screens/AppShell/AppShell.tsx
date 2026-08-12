@@ -64,6 +64,13 @@ const navLinkClass = ({ isActive }: { isActive: boolean }) =>
  * bottom nav's raised Send button, and now the rate-checker's own
  * "Compare rates" hand-off). A second global button competing with
  * those added noise without adding a capability.
+ *
+ * M27: the bottom nav's raised Send button is gone too — it's an
+ * action, not one of the four destinations the bar navigates between,
+ * same reasoning M19 already applied to the sidebar. Replaced by a
+ * floating action button so mobile doesn't lose its persistent send
+ * entry point on pages other than Home (Beneficiaries/Providers/
+ * Profile never had their own Send CTA).
  */
 export function AppShell({
   onSendMoneyClick,
@@ -126,12 +133,6 @@ export function AppShell({
           <HomeIcon />
           Home
         </NavLink>
-        <button type="button" className={styles.bottomNavSend} onClick={() => onSendMoneyClick()}>
-          <span className={styles.bottomNavSendIcon}>
-            <SendIcon />
-          </span>
-          Send
-        </button>
         <NavLink to="/activity" className={({ isActive }) => `${styles.bottomNavItem} ${isActive ? styles.bottomNavItemActive : ''}`}>
           <ActivityIcon />
           Activity
@@ -141,6 +142,10 @@ export function AppShell({
           Profile
         </NavLink>
       </nav>
+
+      <button type="button" className={styles.fab} onClick={() => onSendMoneyClick()} aria-label="Send money">
+        <SendIcon />
+      </button>
     </div>
   )
 }
