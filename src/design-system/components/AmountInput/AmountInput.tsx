@@ -5,6 +5,14 @@ export interface AmountInputProps extends Omit<InputHTMLAttributes<HTMLInputElem
   helperText?: string
   /** Presence of an error message puts the field into its error state (red value + message). */
   errorText?: string
+  /**
+   * The sending currency label, e.g. "AED". Defaults to "AED" — RemitOne
+   * sends from a UAE AED balance regardless of destination corridor.
+   * Was a hardcoded "$" until M15/16; flagged in the product discovery
+   * doc's audit as a real bug, fixed here where this component's actual
+   * consumer (the rebuilt Send Money flow) needed it corrected anyway.
+   */
+  currencyLabel?: string
 }
 
 /** Strips everything except digits and a single decimal point. */
@@ -17,7 +25,7 @@ function sanitizeAmount(raw: string): string {
   )
 }
 
-export function AmountInput({ helperText, errorText, onChange, ...rest }: AmountInputProps) {
+export function AmountInput({ helperText, errorText, currencyLabel = 'AED', onChange, ...rest }: AmountInputProps) {
   const isError = Boolean(errorText)
   const message = errorText ?? helperText
 
@@ -32,7 +40,7 @@ export function AmountInput({ helperText, errorText, onChange, ...rest }: Amount
   return (
     <div className={styles.wrap}>
       <div className={styles.row}>
-        <span className={`ds-text-display ${styles.currency}`}>$</span>
+        <span className={`ds-text-display ${styles.currency}`}>{currencyLabel}</span>
         <input
           className={`${styles.input} ds-text-display-xl ${isError ? styles.inputError : ''}`}
           inputMode="decimal"

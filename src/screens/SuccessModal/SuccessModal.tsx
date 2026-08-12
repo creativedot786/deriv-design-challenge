@@ -6,6 +6,10 @@ export interface SuccessModalProps {
   onClose: () => void
   recipientName: string
   amount: string
+  /** Added in M15/16 for the rebuilt Send Money flow — optional so this stays presentational and doesn't require every caller to pass corridor/provider detail. */
+  providerName?: string
+  countryName?: string
+  recipientReceivesLabel?: string
 }
 
 const today = new Date()
@@ -28,7 +32,15 @@ const CheckIcon = () => (
   </svg>
 )
 
-export function SuccessModal({ isOpen, onClose, recipientName, amount }: SuccessModalProps) {
+export function SuccessModal({
+  isOpen,
+  onClose,
+  recipientName,
+  amount,
+  providerName,
+  countryName,
+  recipientReceivesLabel,
+}: SuccessModalProps) {
   return (
     <Modal isOpen={isOpen} onClose={onClose} label="Transfer sent">
       <div className={styles.content}>
@@ -39,6 +51,7 @@ export function SuccessModal({ isOpen, onClose, recipientName, amount }: Success
           <p className="ds-text-h1">Transfer sent</p>
           <p className={`ds-text-body ${styles.subtext}`}>
             {amount} sent to {recipientName}
+            {countryName ? ` in ${countryName}` : ''}
           </p>
         </div>
 
@@ -48,9 +61,21 @@ export function SuccessModal({ isOpen, onClose, recipientName, amount }: Success
             <span className="ds-text-label">{recipientName}</span>
           </div>
           <div className={styles.row}>
-            <span className={`ds-text-body ${styles.rowLabel}`}>Amount</span>
+            <span className={`ds-text-body ${styles.rowLabel}`}>You sent</span>
             <span className="ds-text-label">{amount}</span>
           </div>
+          {recipientReceivesLabel && (
+            <div className={styles.row}>
+              <span className={`ds-text-body ${styles.rowLabel}`}>They receive</span>
+              <span className="ds-text-label">{recipientReceivesLabel}</span>
+            </div>
+          )}
+          {providerName && (
+            <div className={styles.row}>
+              <span className={`ds-text-body ${styles.rowLabel}`}>Via</span>
+              <span className="ds-text-label">{providerName}</span>
+            </div>
+          )}
           <div className={styles.row}>
             <span className={`ds-text-body ${styles.rowLabel}`}>Date</span>
             <span className="ds-text-label">

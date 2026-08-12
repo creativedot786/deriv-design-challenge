@@ -13,9 +13,13 @@ type ActiveModal = 'sendMoney' | 'success' | null
 
 function App() {
   const [activeModal, setActiveModal] = useState<ActiveModal>(null)
-  const [completedTransfer, setCompletedTransfer] = useState<{ recipientName: string; amount: string } | null>(
-    null,
-  )
+  const [completedTransfer, setCompletedTransfer] = useState<{
+    recipientName: string
+    amount: string
+    providerName: string
+    countryName: string
+    recipientReceivesLabel: string
+  } | null>(null)
 
   const openSendMoney = () => setActiveModal('sendMoney')
 
@@ -45,6 +49,9 @@ function App() {
         onClose={() => setActiveModal(null)}
         recipientName={completedTransfer?.recipientName ?? ''}
         amount={completedTransfer?.amount ?? ''}
+        providerName={completedTransfer?.providerName ?? ''}
+        countryName={completedTransfer?.countryName ?? ''}
+        recipientReceivesLabel={completedTransfer?.recipientReceivesLabel ?? ''}
       />
     </BrowserRouter>
   )

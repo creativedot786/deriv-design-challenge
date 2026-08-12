@@ -12,6 +12,8 @@ export interface ProviderRate {
   minAmountAed: number
   deliveryMethod: DeliveryMethod
   deliveryEtaLabel: string
+  /** Minutes, used for "Fastest" sorting — deliveryEtaLabel is what's shown, this is what's sorted. */
+  deliveryMinutesEstimate: number
   asOfLabel: string
 }
 
@@ -22,21 +24,21 @@ export interface ProviderRate {
  */
 export const providerRates: ProviderRate[] = [
   // India
-  { providerId: 'p-alansari', corridorId: 'c-in', exchangeRate: 22.86, feeAed: 5, minAmountAed: 50, deliveryMethod: 'bank', deliveryEtaLabel: 'Within minutes', asOfLabel: '2 min ago' },
-  { providerId: 'p-alfardan', corridorId: 'c-in', exchangeRate: 22.89, feeAed: 4, minAmountAed: 100, deliveryMethod: 'bank', deliveryEtaLabel: 'Within 1 hour', asOfLabel: '6 min ago' },
-  { providerId: 'p-uaeexchange', corridorId: 'c-in', exchangeRate: 22.79, feeAed: 0, minAmountAed: 50, deliveryMethod: 'cash_pickup', deliveryEtaLabel: 'Within 30 min', asOfLabel: '14 min ago' },
-  { providerId: 'p-lulu', corridorId: 'c-in', exchangeRate: 22.91, feeAed: 3, minAmountAed: 100, deliveryMethod: 'bank', deliveryEtaLabel: 'Within 2 hours', asOfLabel: '—' },
+  { providerId: 'p-alansari', corridorId: 'c-in', exchangeRate: 22.86, feeAed: 5, minAmountAed: 50, deliveryMethod: 'bank', deliveryEtaLabel: 'Within minutes', deliveryMinutesEstimate: 10, asOfLabel: '2 min ago' },
+  { providerId: 'p-alfardan', corridorId: 'c-in', exchangeRate: 22.89, feeAed: 4, minAmountAed: 100, deliveryMethod: 'bank', deliveryEtaLabel: 'Within 1 hour', deliveryMinutesEstimate: 60, asOfLabel: '6 min ago' },
+  { providerId: 'p-uaeexchange', corridorId: 'c-in', exchangeRate: 22.79, feeAed: 0, minAmountAed: 50, deliveryMethod: 'cash_pickup', deliveryEtaLabel: 'Within 30 min', deliveryMinutesEstimate: 30, asOfLabel: '14 min ago' },
+  { providerId: 'p-lulu', corridorId: 'c-in', exchangeRate: 22.91, feeAed: 3, minAmountAed: 100, deliveryMethod: 'bank', deliveryEtaLabel: 'Within 2 hours', deliveryMinutesEstimate: 120, asOfLabel: '—' },
 
   // Philippines
-  { providerId: 'p-alansari', corridorId: 'c-ph', exchangeRate: 15.48, feeAed: 5, minAmountAed: 50, deliveryMethod: 'bank', deliveryEtaLabel: 'Within minutes', asOfLabel: '2 min ago' },
-  { providerId: 'p-alfardan', corridorId: 'c-ph', exchangeRate: 15.51, feeAed: 6, minAmountAed: 100, deliveryMethod: 'mobile_wallet', deliveryEtaLabel: 'Within minutes', asOfLabel: '6 min ago' },
-  { providerId: 'p-lulu', corridorId: 'c-ph', exchangeRate: 15.53, feeAed: 4, minAmountAed: 100, deliveryMethod: 'cash_pickup', deliveryEtaLabel: 'Within 1 hour', asOfLabel: '—' },
+  { providerId: 'p-alansari', corridorId: 'c-ph', exchangeRate: 15.48, feeAed: 5, minAmountAed: 50, deliveryMethod: 'bank', deliveryEtaLabel: 'Within minutes', deliveryMinutesEstimate: 10, asOfLabel: '2 min ago' },
+  { providerId: 'p-alfardan', corridorId: 'c-ph', exchangeRate: 15.51, feeAed: 6, minAmountAed: 100, deliveryMethod: 'mobile_wallet', deliveryEtaLabel: 'Within minutes', deliveryMinutesEstimate: 5, asOfLabel: '6 min ago' },
+  { providerId: 'p-lulu', corridorId: 'c-ph', exchangeRate: 15.53, feeAed: 4, minAmountAed: 100, deliveryMethod: 'cash_pickup', deliveryEtaLabel: 'Within 1 hour', deliveryMinutesEstimate: 60, asOfLabel: '—' },
 
   // Pakistan
-  { providerId: 'p-alansari', corridorId: 'c-pk', exchangeRate: 75.62, feeAed: 5, minAmountAed: 50, deliveryMethod: 'bank', deliveryEtaLabel: 'Within 1 hour', asOfLabel: '2 min ago' },
-  { providerId: 'p-alfardan', corridorId: 'c-pk', exchangeRate: 75.94, feeAed: 4, minAmountAed: 100, deliveryMethod: 'cash_pickup', deliveryEtaLabel: 'Within 30 min', asOfLabel: '6 min ago' },
-  { providerId: 'p-uaeexchange', corridorId: 'c-pk', exchangeRate: 75.71, feeAed: 3, minAmountAed: 200, deliveryMethod: 'bank', deliveryEtaLabel: 'Next day', asOfLabel: '14 min ago' },
-  { providerId: 'p-lulu', corridorId: 'c-pk', exchangeRate: 75.88, feeAed: 4, minAmountAed: 100, deliveryMethod: 'bank', deliveryEtaLabel: 'Within 2 hours', asOfLabel: '—' },
+  { providerId: 'p-alansari', corridorId: 'c-pk', exchangeRate: 75.62, feeAed: 5, minAmountAed: 50, deliveryMethod: 'bank', deliveryEtaLabel: 'Within 1 hour', deliveryMinutesEstimate: 60, asOfLabel: '2 min ago' },
+  { providerId: 'p-alfardan', corridorId: 'c-pk', exchangeRate: 75.94, feeAed: 4, minAmountAed: 100, deliveryMethod: 'cash_pickup', deliveryEtaLabel: 'Within 30 min', deliveryMinutesEstimate: 30, asOfLabel: '6 min ago' },
+  { providerId: 'p-uaeexchange', corridorId: 'c-pk', exchangeRate: 75.71, feeAed: 3, minAmountAed: 200, deliveryMethod: 'bank', deliveryEtaLabel: 'Next day', deliveryMinutesEstimate: 1440, asOfLabel: '14 min ago' },
+  { providerId: 'p-lulu', corridorId: 'c-pk', exchangeRate: 75.88, feeAed: 4, minAmountAed: 100, deliveryMethod: 'bank', deliveryEtaLabel: 'Within 2 hours', deliveryMinutesEstimate: 120, asOfLabel: '—' },
 ]
 
 export function ratesForCorridor(corridorId: string): ProviderRate[] {
