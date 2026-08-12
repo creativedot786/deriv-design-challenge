@@ -2,26 +2,31 @@ import { NavLink, Outlet } from 'react-router-dom'
 import { Avatar } from '../../design-system/components'
 import { currentUser } from '../../mocks/user'
 import type { Beneficiary } from '../../mocks/beneficiaries'
+import type { Provider, ProviderStatus } from '../../mocks/providers'
 import { ActivityIcon, HomeIcon, LogoIcon, ProfileIcon, SendIcon } from './icons'
 import styles from './AppShell.module.css'
 
 export interface AppShellProps {
   onSendMoneyClick: () => void
   /**
-   * Lifted to App.tsx in M17 so the Beneficiaries screen and the Send
-   * Money flow read/write the same list — mirrors the existing
-   * single-source-of-truth rule for Quick Send/recipients (see AGENTS.md:
-   * "don't reintroduce two separate recipient lists"), now applying to
-   * beneficiaries too.
+   * Lifted to App.tsx in M17/M18 so the Beneficiaries/Providers screens
+   * and the Send Money flow all read/write the same lists — mirrors the
+   * existing single-source-of-truth rule for Quick Send/recipients (see
+   * AGENTS.md: "don't reintroduce two separate recipient lists"), now
+   * applying to beneficiaries and provider connection state too.
    */
   beneficiaries: Beneficiary[]
   onAddBeneficiary: (beneficiary: Beneficiary) => void
+  providers: Provider[]
+  onUpdateProviderStatus: (providerId: string, status: ProviderStatus) => void
 }
 
 export interface AppOutletContext {
   onSendMoneyClick: () => void
   beneficiaries: Beneficiary[]
   onAddBeneficiary: (beneficiary: Beneficiary) => void
+  providers: Provider[]
+  onUpdateProviderStatus: (providerId: string, status: ProviderStatus) => void
 }
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
@@ -34,7 +39,13 @@ const navLinkClass = ({ isActive }: { isActive: boolean }) =>
  * handler, not a route: it opens as a modal from any page (App.tsx owns
  * the modal state) — see the discovery doc's send-flow section.
  */
-export function AppShell({ onSendMoneyClick, beneficiaries, onAddBeneficiary }: AppShellProps) {
+export function AppShell({
+  onSendMoneyClick,
+  beneficiaries,
+  onAddBeneficiary,
+  providers,
+  onUpdateProviderStatus,
+}: AppShellProps) {
   return (
     <div className={styles.page}>
       <div className={styles.pageInner}>
@@ -78,7 +89,11 @@ export function AppShell({ onSendMoneyClick, beneficiaries, onAddBeneficiary }: 
         </aside>
 
         <main className={styles.main}>
-          <Outlet context={{ onSendMoneyClick, beneficiaries, onAddBeneficiary } satisfies AppOutletContext} />
+          <Outlet
+            context={
+              { onSendMoneyClick, beneficiaries, onAddBeneficiary, providers, onUpdateProviderStatus } satisfies AppOutletContext
+            }
+          />
         </main>
       </div>
 

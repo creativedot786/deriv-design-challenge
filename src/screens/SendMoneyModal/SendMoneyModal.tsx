@@ -13,7 +13,7 @@ import {
   TotalBlock,
 } from '../../design-system/components'
 import { corridors, defaultCorridorId } from '../../mocks/corridors'
-import { providers } from '../../mocks/providers'
+import type { Provider } from '../../mocks/providers'
 import { providerRate, providerRates, quoteFor } from '../../mocks/rates'
 import type { Beneficiary } from '../../mocks/beneficiaries'
 import { fundingMethods } from '../../mocks/fundingMethods'
@@ -30,6 +30,8 @@ export interface SendMoneyModalProps {
    * file, unlike every other read-only mock source in this component.
    */
   beneficiaries: Beneficiary[]
+  /** Same reasoning as beneficiaries, added in M18 — connecting a provider on the Providers screen must be reflected here immediately. */
+  providers: Provider[]
   /** Called when the user hits Send — parent transitions to the Success modal. */
   onComplete: (details: {
     recipientName: string
@@ -51,7 +53,7 @@ function payoutMethodLabel(method: 'bank' | 'cash_pickup' | 'mobile_wallet'): st
   return 'Mobile wallet'
 }
 
-export function SendMoneyModal({ isOpen, onClose, onComplete, beneficiaries }: SendMoneyModalProps) {
+export function SendMoneyModal({ isOpen, onClose, onComplete, beneficiaries, providers }: SendMoneyModalProps) {
   const navigate = useNavigate()
   const [step, setStep] = useState<Step>('amount')
   const [corridorId, setCorridorId] = useState(defaultCorridorId)
@@ -93,7 +95,7 @@ export function SendMoneyModal({ isOpen, onClose, onComplete, beneficiaries }: S
         return { rate, provider, quote, totalCostAed }
       })
       .filter((r) => r.provider)
-  }, [corridorRates, corridorId, numericAmount, isZeroOrInvalid])
+  }, [corridorRates, corridorId, numericAmount, isZeroOrInvalid, providers])
 
   const mostReceivedProviderId = useMemo(() => {
     const withQuote = rows.filter((r) => r.quote)

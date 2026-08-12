@@ -10,6 +10,8 @@ import { SendMoneyModal } from './screens/SendMoneyModal'
 import { SuccessModal } from './screens/SuccessModal'
 import { beneficiaries as initialBeneficiaries } from './mocks/beneficiaries'
 import type { Beneficiary } from './mocks/beneficiaries'
+import { providers as initialProviders } from './mocks/providers'
+import type { Provider, ProviderStatus } from './mocks/providers'
 
 type ActiveModal = 'sendMoney' | 'success' | null
 
@@ -28,12 +30,36 @@ function App() {
   const [beneficiaries, setBeneficiaries] = useState<Beneficiary[]>(initialBeneficiaries)
   const addBeneficiary = (beneficiary: Beneficiary) => setBeneficiaries((prev) => [beneficiary, ...prev])
 
+  // Single source of truth for provider connection state, lifted here in
+  // M18 for the same reason as beneficiaries above — the Providers
+  // screen and the Send Money comparison step must agree on who's
+  // connected.
+  const [providers, setProviders] = useState<Provider[]>(initialProviders)
+  const updateProviderStatus = (providerId: string, status: ProviderStatus) =>
+    setProviders((prev) =>
+      prev.map((p) =>
+        p.id === providerId
+          ? { ...p, status, lastSyncedLabel: status === 'connected' ? 'Just now' : status === 'not_connected' ? 'Never connected' : p.lastSyncedLabel }
+          : p,
+      ),
+    )
+
   const openSendMoney = () => setActiveModal('sendMoney')
 
   return (
     <BrowserRouter>
       <Routes>
-        <Route element={<AppShell onSendMoneyClick={openSendMoney} beneficiaries={beneficiaries} onAddBeneficiary={addBeneficiary} />}>
+        <Route
+          element={
+            <AppShell
+              onSendMoneyClick={openSendMoney}
+              beneficiaries={beneficiaries}
+              onAddBeneficiary={addBeneficiary}
+              providers={providers}
+              onUpdateProviderStatus={updateProviderStatus}
+            />
+          }
+        >
           <Route index element={<Dashboard />} />
           <Route path="beneficiaries" element={<Beneficiaries />} />
           <Route path="providers" element={<Providers />} />
@@ -45,6 +71,7 @@ function App() {
       <SendMoneyModal
         isOpen={activeModal === 'sendMoney'}
         beneficiaries={beneficiaries}
+        providers={providers}
         onClose={() => setActiveModal(null)}
         onComplete={(details) => {
           setCompletedTransfer(details)

@@ -11,6 +11,8 @@ export interface ProviderConnectCardProps {
   providerInitials: string
   status: ConnectionStatus
   lastSyncedLabel: string
+  /** Puts whichever action button is showing into its loading state — for the simulated connect/retry round-trip. */
+  isBusy?: boolean
   onConnect?: () => void
   onDisconnect?: () => void
   onRetry?: () => void
@@ -38,6 +40,7 @@ export function ProviderConnectCard({
   providerInitials,
   status,
   lastSyncedLabel,
+  isBusy = false,
   onConnect,
   onDisconnect,
   onRetry,
@@ -58,17 +61,17 @@ export function ProviderConnectCard({
       </div>
 
       {status === 'connected' && onDisconnect && (
-        <Button variant="ghost" onClick={onDisconnect}>
+        <Button variant="ghost" onClick={onDisconnect} isLoading={isBusy}>
           Disconnect
         </Button>
       )}
       {status === 'not_connected' && onConnect && (
-        <Button variant="primary" onClick={onConnect}>
+        <Button variant="primary" onClick={onConnect} isLoading={isBusy}>
           Connect
         </Button>
       )}
       {status === 'failed' && onRetry && (
-        <Button variant="secondary" onClick={onRetry}>
+        <Button variant="secondary" onClick={onRetry} isLoading={isBusy}>
           Retry
         </Button>
       )}
