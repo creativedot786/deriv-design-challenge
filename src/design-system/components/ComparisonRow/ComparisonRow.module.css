@@ -1,0 +1,55 @@
+.row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  background: var(--bg-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: var(--space-5);
+}
+
+/* Not-connected rows stay visible (never hidden) but read as quieter —
+   flat instead of elevated, matching Card's own Elevated/Flat
+   distinction. See the discovery doc: locked providers are the
+   comparison screen's acquisition funnel for connections, not
+   something to hide. */
+.rowLocked {
+  box-shadow: none;
+  border: 1.5px solid var(--border-secondary);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.headerMid {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.amount {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.amountValue {
+  color: var(--text-primary);
+}
+
+.amountValueLocked {
+  color: var(--text-muted);
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
