@@ -1,0 +1,1 @@
+export { Beneficiaries } from './Beneficiaries'

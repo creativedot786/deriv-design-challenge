@@ -1,5 +1,11 @@
 import { useState } from 'react'
+import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import { AppShell } from './screens/AppShell'
 import { Dashboard } from './screens/Dashboard'
+import { Beneficiaries } from './screens/Beneficiaries'
+import { Providers } from './screens/Providers'
+import { Activity } from './screens/Activity'
+import { Profile } from './screens/Profile'
 import { SendMoneyModal } from './screens/SendMoneyModal'
 import { SuccessModal } from './screens/SuccessModal'
 
@@ -11,9 +17,19 @@ function App() {
     null,
   )
 
+  const openSendMoney = () => setActiveModal('sendMoney')
+
   return (
-    <>
-      <Dashboard onSendMoneyClick={() => setActiveModal('sendMoney')} />
+    <BrowserRouter>
+      <Routes>
+        <Route element={<AppShell onSendMoneyClick={openSendMoney} />}>
+          <Route index element={<Dashboard />} />
+          <Route path="beneficiaries" element={<Beneficiaries />} />
+          <Route path="providers" element={<Providers />} />
+          <Route path="activity" element={<Activity />} />
+          <Route path="profile" element={<Profile />} />
+        </Route>
+      </Routes>
 
       <SendMoneyModal
         isOpen={activeModal === 'sendMoney'}
@@ -30,7 +46,7 @@ function App() {
         recipientName={completedTransfer?.recipientName ?? ''}
         amount={completedTransfer?.amount ?? ''}
       />
-    </>
+    </BrowserRouter>
   )
 }
 
