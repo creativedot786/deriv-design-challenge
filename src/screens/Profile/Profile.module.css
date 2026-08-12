@@ -15,3 +15,78 @@
   flex-direction: column;
   gap: var(--space-1);
 }
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.tierSummary {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.cashbackRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.ladder {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--space-3);
+}
+
+.tierTile {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+  border: 1.5px solid transparent;
+}
+
+.tierTileActive {
+  background: var(--bg-surface);
+  box-shadow: var(--shadow-sm);
+}
+
+/* M21 — mobile-only shortcut to /providers; desktop already has it in
+   the sidebar nav (see AppShell), so duplicating it here would be
+   redundant above the 860px breakpoint. */
+.providersShortcut {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+  box-shadow: var(--shadow-sm);
+  text-decoration: none;
+  color: var(--text-primary);
+}
+
+@media (min-width: 860px) {
+  .providersShortcut {
+    display: none;
+  }
+}
+
+.providersShortcutIcon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--bg-surface-muted);
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.providersShortcutMid {
+  flex: 1;
+}
