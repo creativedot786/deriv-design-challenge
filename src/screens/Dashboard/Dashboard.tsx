@@ -339,7 +339,7 @@ export function Dashboard() {
               <p className="ds-text-caption" style={{ color: 'var(--text-inverse-muted)' }}>
                 Wallet balance
               </p>
-              <p className="ds-text-display">AED {wallet.floatBalanceAed.toFixed(2)}</p>
+              <p className="ds-text-display ds-font-display">AED {wallet.floatBalanceAed.toFixed(2)}</p>
               <p className="ds-text-caption" style={{ color: 'var(--text-inverse-muted)' }}>
                 + AED {wallet.cashbackEarnedAed.toFixed(2)} cashback earned
               </p>
@@ -386,7 +386,7 @@ export function Dashboard() {
             <>
               <div className={styles.mobileHeroDivider} />
               <span className={`ds-text-caption ${styles.mobileHeroLabel}`}>Wallet balance</span>
-              <span className="ds-text-display" style={{ color: 'var(--text-inverse)' }}>
+              <span className="ds-text-display ds-font-display" style={{ color: 'var(--text-inverse)' }}>
                 AED {wallet.floatBalanceAed.toFixed(2)}
               </span>
               <span className={`ds-text-caption ${styles.mobileHeroLabel}`}>+ AED {wallet.cashbackEarnedAed.toFixed(2)} cashback earned</span>

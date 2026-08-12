@@ -40,9 +40,9 @@ export function AmountInput({ helperText, errorText, currencyLabel = 'AED', onCh
   return (
     <div className={styles.wrap}>
       <div className={styles.row}>
-        <span className={`ds-text-display ${styles.currency}`}>{currencyLabel}</span>
+        <span className={`ds-text-display ds-font-display ${styles.currency}`}>{currencyLabel}</span>
         <input
-          className={`${styles.input} ds-text-display-xl ${isError ? styles.inputError : ''}`}
+          className={`${styles.input} ds-text-display-xl ds-font-display ${isError ? styles.inputError : ''}`}
           inputMode="decimal"
           pattern="[0-9]*\.?[0-9]*"
           aria-label="Amount to send"
