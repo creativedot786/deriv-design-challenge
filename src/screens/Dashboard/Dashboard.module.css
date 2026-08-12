@@ -89,10 +89,19 @@
   gap: var(--space-2);
 }
 
+/* Same sticky treatment as Activity.module.css's .groupLabel — pinned
+   above its group while scrolling instead of drifting past with no
+   anchor. */
 .txGroupLabel {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: block;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.04em;
+  background: var(--bg-canvas);
+  padding-block: var(--space-2);
 }
 
 /* M23 — a bounded Card with dividers, replacing bare rows floating
@@ -128,21 +137,31 @@
   gap: var(--space-2);
 }
 
-/* ---------- Mobile hero: greeting + Wallet merged ---------- */
+/* ---------- Mobile hero: brand + greeting + Wallet merged ---------- */
 .mobileHero {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: var(--space-1);
   color: var(--text-inverse);
-  /* Bleeds past .main's own side padding to sit edge-to-edge — not the
-     top too, now that AppShell's mobile top bar sits above this, so the
-     hero starts right where the top bar's own gap leaves off instead of
-     jumping all the way to the viewport edge. */
-  margin: 0 calc(var(--space-4) * -1) 0;
-  padding: var(--space-6) var(--space-4) var(--space-7);
+  /* M29 — bleeds past .main's own padding on every edge including the
+     top, back to a true full-bleed masthead. AppShell's separate mobile
+     top bar is hidden on Home specifically (see AppShell.tsx) so there's
+     no second white strip + gap sitting above this fighting it for the
+     "first thing you see" job — this hero carries the brand mark itself
+     now (below). Only the bottom corners round: the top edge is flush
+     with the viewport, rounding it would look like a mistake. */
+  margin: calc(var(--space-4) * -1) calc(var(--space-4) * -1) 0;
+  padding: var(--space-5) var(--space-4) var(--space-7);
   background: linear-gradient(135deg, var(--bg-brand) 0%, var(--bg-inverse) 100%);
-  border-radius: var(--radius-lg);
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+}
+
+.mobileHeroBrand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
 }
 
 .mobileHeroLabel {

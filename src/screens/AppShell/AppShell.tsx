@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import { NavLink, Outlet } from 'react-router-dom'
-import { Avatar } from '../../design-system/components'
+import { NavLink, Outlet, useLocation } from 'react-router-dom'
+import { Avatar, Badge } from '../../design-system/components'
 import { currentUser } from '../../mocks/user'
 import type { Beneficiary } from '../../mocks/beneficiaries'
 import type { Provider, ProviderStatus } from '../../mocks/providers'
@@ -95,6 +95,19 @@ export function AppShell({
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
+  // M29 — Home carries its own logo inside the gradient hero (see
+  // Dashboard.tsx), so the plain white top bar would just be a
+  // redundant second brand mark sitting in an awkward gap above it.
+  // Checking the route here is the same kind of thing AppShell already
+  // does for nav active-states, not a new dependency on Dashboard's
+  // internals.
+  const { pathname } = useLocation()
+  const isHome = pathname === '/'
+
+  // M29 — connection status is otherwise invisible until you actually
+  // navigate into Providers to check.
+  const connectedCount = providers.filter((p) => p.status === 'connected').length
+
   return (
     <div className={styles.page}>
       <div className={styles.pageInner}>
@@ -117,7 +130,12 @@ export function AppShell({
               Beneficiaries
             </NavLink>
             <NavLink to="/providers" className={navLinkClass}>
-              Providers
+              <span className={styles.navLinkRow}>
+                Providers
+                <Badge kind={connectedCount === providers.length ? 'success' : 'neutral'}>
+                  {connectedCount}/{providers.length}
+                </Badge>
+              </span>
             </NavLink>
           </nav>
 
@@ -139,15 +157,18 @@ export function AppShell({
               hides below 860px. A slim top bar, not folded into
               Dashboard's hero, so it's present on every mobile route
               (Beneficiaries/Providers/Activity/Profile included), same
-              as the sidebar logo is on desktop. */}
-          <div className={styles.mobileTopBar}>
-            <span className={styles.mobileLogo}>
-              <LogoIcon />
-            </span>
-            <span className="ds-text-label" style={{ color: 'var(--text-primary)' }}>
-              RemitOne
-            </span>
-          </div>
+              as the sidebar logo is on desktop. M29: skipped on Home —
+              its hero carries the logo itself. */}
+          {!isHome && (
+            <div className={styles.mobileTopBar}>
+              <span className={styles.mobileLogo}>
+                <LogoIcon />
+              </span>
+              <span className="ds-text-h2" style={{ color: 'var(--text-primary)' }}>
+                RemitOne
+              </span>
+            </div>
+          )}
 
           <Outlet
             context={

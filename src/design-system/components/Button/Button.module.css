@@ -12,7 +12,8 @@
   transition:
     background-color 120ms ease,
     box-shadow 120ms ease,
-    border-color 120ms ease;
+    border-color 120ms ease,
+    transform 100ms ease;
 
   /* spinner colors default to the secondary/ghost/link treatment; primary overrides below */
   --spinner-ring: var(--bg-brand-muted);
@@ -22,6 +23,19 @@
 .button:focus-visible {
   outline: 2px solid var(--border-brand);
   outline-offset: 2px;
+}
+
+/* Hover only ever fires on pointer devices — on touch there was no
+   feedback at all between tapping and the action completing. This is
+   the one state that reaches touch too. */
+.button:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button:active:not(:disabled) {
+    transform: none;
+  }
 }
 
 .fullWidth {

@@ -10,6 +10,17 @@
   width: 100%;
   text-align: left;
   font-family: inherit;
+  transition: transform 100ms ease;
+}
+
+.option:active {
+  transform: scale(0.99);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .option:active {
+    transform: none;
+  }
 }
 
 .option.selected {

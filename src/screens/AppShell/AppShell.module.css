@@ -108,6 +108,15 @@
   background: var(--bg-brand-muted);
 }
 
+/* M29 — surfaces provider connection status (e.g. "3/4") right in the
+   nav, instead of it being invisible until you click into the page. */
+.navLinkRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
 .sidebarFooter {
   display: flex;
   align-items: center;
@@ -152,15 +161,22 @@
 }
 
 .mobileLogo {
-  width: 24px;
-  height: 24px;
-  border-radius: var(--radius-sm);
+  /* M29 — was 24px, matching the desktop sidebar's mark almost exactly;
+     read as too small/timid as the only brand mark on the page. */
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-md);
   background: var(--bg-brand);
   color: var(--text-inverse);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+}
+
+.mobileLogo svg {
+  width: 20px;
+  height: 20px;
 }
 
 .bottomNav {
@@ -246,6 +262,7 @@
 .fabCollapsed {
   width: 56px;
   padding: 0;
+  gap: 0;
   justify-content: center;
 }
 

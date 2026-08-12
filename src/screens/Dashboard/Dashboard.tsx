@@ -22,6 +22,12 @@ import { currentUserTierProgress, nextTier, tierById } from '../../mocks/tiers'
 import { wallet } from '../../mocks/fundingMethods'
 import styles from './Dashboard.module.css'
 
+const LogoIcon = () => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M12 2 L20 7 V17 L12 22 L4 17 V7 Z" />
+  </svg>
+)
+
 const InboxIcon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
     <path d="M22 12h-6l-2 3h-4l-2-3H2" />
@@ -145,10 +151,13 @@ export function Dashboard() {
     </>
   )
 
-  // M28 — these three take a `ctaVariant` instead of being static JSX:
-  // mobile's stacked cards read as "competing" when every standalone
-  // button is the same bordered Secondary style, so mobile passes
-  // 'ghost' while desktop keeps 'secondary'. A parameterized function
+  // M28/M29 — these three take a `ctaVariant` instead of being static
+  // JSX: mobile's stacked cards read as "competing" when every
+  // standalone button is the same bordered Secondary style, so mobile
+  // passes 'link' while desktop keeps 'secondary'. (Ghost was tried
+  // first but shares Secondary's full button padding under a
+  // transparent background, so its text doesn't line up with the plain
+  // text above it — Link's tight padding does.) A parameterized function
   // is the only way to vary that per breakpoint without literally
   // duplicating each card's markup between the two layouts below.
   const renderTierCard = (ctaVariant: ButtonVariant) =>
@@ -354,6 +363,13 @@ export function Dashboard() {
       {/* ================= Mobile (< 860px) ================= */}
       <div className={styles.mobileOnly}>
         <div className={styles.mobileHero}>
+          <div className={styles.mobileHeroBrand}>
+            <LogoIcon />
+            <span className="ds-text-h2" style={{ color: 'var(--text-inverse)' }}>
+              RemitOne
+            </span>
+          </div>
+
           <span className={`ds-text-caption ${styles.mobileHeroLabel}`}>Good afternoon</span>
           <span className="ds-text-h1" style={{ color: 'var(--text-inverse)' }}>
             Jordan Diaz
@@ -381,13 +397,13 @@ export function Dashboard() {
           )}
         </div>
 
-        {renderQuickSendCard('ghost')}
+        {renderQuickSendCard('link')}
 
         {teaserText && <div className={styles.teaserRow}>{teaserText}</div>}
 
-        {renderRepeatCard('ghost')}
+        {renderRepeatCard('link')}
 
-        {renderTierCard('ghost')}
+        {renderTierCard('link')}
 
         {activitySection}
       </div>
