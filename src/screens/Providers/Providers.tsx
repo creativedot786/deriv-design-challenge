@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useOutletContext } from 'react-router-dom'
-import { ProviderConnectCard } from '../../design-system/components'
+import { Card, ProviderConnectCard } from '../../design-system/components'
 import type { AppOutletContext } from '../AppShell'
 import styles from './Providers.module.css'
 
@@ -36,10 +36,11 @@ export function Providers() {
         </span>
       </div>
 
-      <div className={styles.list}>
+      <Card variant="elevated" className={styles.listCard}>
         {providers.map((p) => (
           <ProviderConnectCard
             key={p.id}
+            variant="listItem"
             providerName={p.name}
             providerInitials={p.initials}
             status={p.status}
@@ -50,7 +51,7 @@ export function Providers() {
             onDisconnect={() => onUpdateProviderStatus(p.id, 'not_connected')}
           />
         ))}
-      </div>
+      </Card>
     </div>
   )
 }

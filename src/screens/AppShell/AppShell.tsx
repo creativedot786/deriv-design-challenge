@@ -1,5 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom'
-import { Avatar } from '../../design-system/components'
+import { Avatar, Button } from '../../design-system/components'
 import { currentUser } from '../../mocks/user'
 import type { Beneficiary } from '../../mocks/beneficiaries'
 import type { Provider, ProviderStatus } from '../../mocks/providers'
@@ -38,6 +38,11 @@ const navLinkClass = ({ isActive }: { isActive: boolean }) =>
  * one screen that used to be the whole app. Send Money stays a click
  * handler, not a route: it opens as a modal from any page (App.tsx owns
  * the modal state) — see the discovery doc's send-flow section.
+ *
+ * M19: Send Money moved out of the nav list into its own primary-button
+ * CTA above it. It's an action, not a destination — styling it as a
+ * plain nav link (as M11 originally did) implied it was a page you
+ * navigate to and stay on, which isn't what happens.
  */
 export function AppShell({
   onSendMoneyClick,
@@ -57,13 +62,14 @@ export function AppShell({
             <span className={`ds-text-label ${styles.brandName}`}>RemitOne</span>
           </div>
 
+          <Button variant="primary" fullWidth onClick={onSendMoneyClick}>
+            Send money
+          </Button>
+
           <nav className={styles.sidebarNav}>
             <NavLink to="/" end className={navLinkClass}>
               Home
             </NavLink>
-            <button type="button" className={`ds-text-label ${styles.navLink}`} onClick={onSendMoneyClick}>
-              Send Money
-            </button>
             <NavLink to="/beneficiaries" className={navLinkClass}>
               Beneficiaries
             </NavLink>
@@ -102,8 +108,10 @@ export function AppShell({
           <HomeIcon />
           Home
         </NavLink>
-        <button type="button" className={styles.bottomNavItem} onClick={onSendMoneyClick}>
-          <SendIcon />
+        <button type="button" className={styles.bottomNavSend} onClick={onSendMoneyClick}>
+          <span className={styles.bottomNavSendIcon}>
+            <SendIcon />
+          </span>
           Send
         </button>
         <NavLink to="/activity" className={({ isActive }) => `${styles.bottomNavItem} ${isActive ? styles.bottomNavItemActive : ''}`}>

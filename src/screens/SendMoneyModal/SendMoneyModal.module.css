@@ -4,29 +4,39 @@
   gap: var(--space-5);
 }
 
-.backButton {
-  display: inline-flex;
+/* M19 — replaces .backButton/.stepHeading. Every step gets this same
+   header: a persistent close button, an optional back arrow, a progress
+   bar, and a plain-language title — instead of a single text link that
+   did double duty as both "back" and "close" depending on the step. */
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.headerTop {
+  display: flex;
   align-items: center;
-  gap: var(--space-2);
+  justify-content: space-between;
+}
+
+.iconButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
   background: none;
   border: none;
   color: var(--text-secondary);
-  font-family: inherit;
-  padding: var(--space-2);
-  margin-left: calc(var(--space-2) * -1);
   cursor: pointer;
-  border-radius: var(--radius-sm);
-  width: fit-content;
+  border-radius: var(--radius-full);
+  margin-inline: calc(var(--space-1) * -1);
 }
 
-.backButton:hover {
+.iconButton:hover {
   background: var(--bg-surface-muted);
-}
-
-.stepHeading {
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  color: var(--text-primary);
 }
 
 .recipientList {

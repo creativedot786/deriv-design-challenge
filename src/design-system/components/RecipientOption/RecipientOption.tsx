@@ -7,10 +7,21 @@ export interface RecipientOptionProps {
   meta: string
   selected?: boolean
   onClick?: () => void
+  /**
+   * 'chip' (default) — the original floating muted-background row, correct
+   * against a white modal panel (Send Money). 'listItem' — flat, no
+   * background/radius, meant to sit divided inside a Card on a page (the
+   * Beneficiaries screen). Added because 'chip' on `bg-surface-muted`
+   * (ink-50) is nearly invisible directly on the page canvas
+   * (`bg-canvas`, ink-25) — a real contrast bug, not a style choice.
+   */
+  variant?: 'chip' | 'listItem'
 }
 
-export function RecipientOption({ initials, name, meta, selected = false, onClick }: RecipientOptionProps) {
-  const classes = [styles.option, selected ? styles.selected : ''].filter(Boolean).join(' ')
+export function RecipientOption({ initials, name, meta, selected = false, onClick, variant = 'chip' }: RecipientOptionProps) {
+  const classes = [styles.option, variant === 'listItem' ? styles.listItem : '', selected ? styles.selected : '']
+    .filter(Boolean)
+    .join(' ')
 
   return (
     <button type="button" className={classes} onClick={onClick} aria-pressed={selected}>

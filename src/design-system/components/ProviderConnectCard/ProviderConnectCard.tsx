@@ -16,6 +16,8 @@ export interface ProviderConnectCardProps {
   onConnect?: () => void
   onDisconnect?: () => void
   onRetry?: () => void
+  /** 'chip' (default) — floating muted-background row. 'listItem' — flat, divided inside a Card list (the Providers screen). See RecipientOption's identical variant for the reasoning (a real contrast bug against the page canvas, not a style choice). */
+  variant?: 'chip' | 'listItem'
 }
 
 const statusMeta: Record<ConnectionStatus, { badgeKind: BadgeKind; badgeLabel: string }> = {
@@ -44,11 +46,12 @@ export function ProviderConnectCard({
   onConnect,
   onDisconnect,
   onRetry,
+  variant = 'chip',
 }: ProviderConnectCardProps) {
   const { badgeKind, badgeLabel } = statusMeta[status]
 
   return (
-    <div className={styles.row}>
+    <div className={`${styles.row} ${variant === 'listItem' ? styles.listItem : ''}`}>
       <Avatar initials={providerInitials} size={40} />
       <div className={styles.mid}>
         <div className={styles.nameRow}>

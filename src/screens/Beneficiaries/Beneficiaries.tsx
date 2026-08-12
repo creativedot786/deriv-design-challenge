@@ -230,21 +230,24 @@ export function Beneficiaries() {
       )}
 
       {beneficiaries.length === 0 ? (
-        <EmptyState icon={<PeopleIcon />} title="No beneficiaries yet" subtext="Add one to start sending." />
+        <Card variant="flat">
+          <EmptyState icon={<PeopleIcon />} title="No beneficiaries yet" subtext="Add one to start sending." />
+        </Card>
       ) : (
-        <div className={styles.list}>
+        <Card variant="elevated" className={styles.listCard}>
           {beneficiaries.map((b) => {
             const c = corridors.find((corr) => corr.id === b.corridorId)!
             return (
               <RecipientOption
                 key={b.id}
+                variant="listItem"
                 initials={b.initials}
                 name={`${c.flag} ${b.name}`}
                 meta={`${c.countryName} · ${metaFor(b)}`}
               />
             )
           })}
-        </div>
+        </Card>
       )}
     </div>
   )

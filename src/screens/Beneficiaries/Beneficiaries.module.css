@@ -11,10 +11,19 @@
   gap: var(--space-4);
 }
 
-.list {
+/* M19 — replaces the old bare .list (rows floating with just a gap,
+   no bounding surface): a single Card containing flat listItem rows,
+   separated by a hairline divider instead of relying on each row's own
+   background for separation. See RecipientOption's variant doc comment
+   for why the old chip look disappeared against the page canvas. */
+.listCard {
+  padding: var(--space-2);
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+}
+
+.listCard > *:not(:last-child) {
+  border-bottom: 1px solid var(--border-secondary);
 }
 
 .formCard {

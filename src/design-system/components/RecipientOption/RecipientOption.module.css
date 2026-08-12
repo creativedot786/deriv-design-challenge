@@ -17,6 +17,21 @@
   background: var(--bg-brand-muted);
 }
 
+/* Flat, no radius/background — meant to sit divided inside a Card list (see RecipientOptionProps.variant). */
+.option.listItem {
+  background: transparent;
+  border-radius: 0;
+}
+
+.option.listItem.selected {
+  background: var(--bg-brand-muted);
+  border-radius: var(--radius-md);
+}
+
+.option.listItem:hover {
+  background: var(--bg-surface-muted);
+}
+
 .mid {
   flex: 1;
   min-width: 0;

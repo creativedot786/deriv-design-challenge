@@ -7,6 +7,12 @@
   background: var(--bg-surface-muted);
 }
 
+/* Flat, no radius/background — meant to sit divided inside a Card list (see ProviderConnectCardProps.variant). */
+.row.listItem {
+  background: transparent;
+  border-radius: 0;
+}
+
 .mid {
   flex: 1;
   min-width: 0;

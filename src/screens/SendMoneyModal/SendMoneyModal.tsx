@@ -5,9 +5,9 @@ import {
   AmountInput,
   Button,
   ComparisonRow,
-  CountrySelector,
   FundingMethodCard,
   Modal,
+  ProgressMeter,
   RecipientOption,
   SegmentedControl,
   TotalBlock,
@@ -42,9 +42,11 @@ export interface SendMoneyModalProps {
   }) => void
 }
 
-type Step = 'amount' | 'compare' | 'beneficiary' | 'review'
+type Step = 'amount' | 'beneficiary' | 'compare' | 'review'
 type SortBy = 'amount' | 'fast' | 'cheap'
 
+const STEP_INDEX: Record<Step, number> = { amount: 1, beneficiary: 2, compare: 3, review: 4 }
+const TOTAL_STEPS = 4
 const DEFAULT_AMOUNT = '500.00'
 
 function payoutMethodLabel(method: 'bank' | 'cash_pickup' | 'mobile_wallet'): string {
@@ -53,10 +55,81 @@ function payoutMethodLabel(method: 'bank' | 'cash_pickup' | 'mobile_wallet'): st
   return 'Mobile wallet'
 }
 
+function beneficiaryMeta(b: Beneficiary): string {
+  if (b.bank) return `${payoutMethodLabel(b.payoutMethod)} · ${b.bank.bankName} ${b.bank.accountNumberMasked}`
+  if (b.mobileWallet) return `${payoutMethodLabel(b.payoutMethod)} · ${b.mobileWallet.walletProvider} ${b.mobileWallet.numberMasked}`
+  if (b.cashPickup) return `${payoutMethodLabel(b.payoutMethod)} · ${b.cashPickup.branchNetwork}`
+  return payoutMethodLabel(b.payoutMethod)
+}
+
+const CloseIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <line x1="18" y1="6" x2="6" y2="18" />
+    <line x1="6" y1="6" x2="18" y2="18" />
+  </svg>
+)
+
+const BackIcon = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <line x1="19" y1="12" x2="5" y2="12" />
+    <polyline points="12 19 5 12 12 5" />
+  </svg>
+)
+
+/**
+ * M19 — every step's header, not just a repeated block: a persistent
+ * close (X), always available, plus a back arrow only where there's
+ * somewhere to go back to (never on step 1). Replaces the old pattern
+ * where step 1 had a "← Send money" back-arrow-labeled link that
+ * actually closed the modal — a mislabeled affordance, not a real back
+ * action. The progress bar reuses ProgressMeter (M14) instead of a
+ * plain "Step X of 4" text label standing alone.
+ */
+function StepHeader({
+  title,
+  step,
+  onBack,
+  onClose,
+}: {
+  title: string
+  step: Step
+  onBack?: () => void
+  onClose: () => void
+}) {
+  return (
+    <div className={styles.header}>
+      <div className={styles.headerTop}>
+        {onBack ? (
+          <button type="button" className={styles.iconButton} onClick={onBack} aria-label="Back">
+            <BackIcon />
+          </button>
+        ) : (
+          <span />
+        )}
+        <button type="button" className={styles.iconButton} onClick={onClose} aria-label="Close">
+          <CloseIcon />
+        </button>
+      </div>
+      <ProgressMeter value={(STEP_INDEX[step] / TOTAL_STEPS) * 100} />
+      <p className="ds-text-h2">{title}</p>
+    </div>
+  )
+}
+
+/**
+ * M19 rework of the M15/16 flow: Amount -> Beneficiary -> Compare
+ * -> Review, was Amount+Destination -> Compare -> Beneficiary -> Review.
+ * The destination corridor is now derived from whichever beneficiary
+ * gets picked, instead of asked as its own step — most people send to
+ * one fixed corridor repeatedly, so a standalone country selector on
+ * every send was friction for a decision that's usually already implied
+ * by "who am I paying." Removing it also means one fewer thing to ask
+ * before the comparison — the part of this product that's actually
+ * differentiated.
+ */
 export function SendMoneyModal({ isOpen, onClose, onComplete, beneficiaries, providers }: SendMoneyModalProps) {
   const navigate = useNavigate()
   const [step, setStep] = useState<Step>('amount')
-  const [corridorId, setCorridorId] = useState(defaultCorridorId)
   const [amount, setAmount] = useState(DEFAULT_AMOUNT)
   const [sortBy, setSortBy] = useState<SortBy>('amount')
   const [selectedProviderId, setSelectedProviderId] = useState<string | null>(null)
@@ -70,7 +143,6 @@ export function SendMoneyModal({ isOpen, onClose, onComplete, beneficiaries, pro
   useEffect(() => {
     if (isOpen) {
       setStep('amount')
-      setCorridorId(defaultCorridorId)
       setAmount(DEFAULT_AMOUNT)
       setSortBy('amount')
       setSelectedProviderId(null)
@@ -80,9 +152,14 @@ export function SendMoneyModal({ isOpen, onClose, onComplete, beneficiaries, pro
     }
   }, [isOpen])
 
-  const corridor = corridors.find((c) => c.id === corridorId)!
   const numericAmount = Number.parseFloat(amount)
   const isZeroOrInvalid = Number.isNaN(numericAmount) || numericAmount <= 0
+
+  const selectedBeneficiary = beneficiaries.find((b) => b.id === selectedBeneficiaryId)
+  // Only meaningful once a beneficiary is chosen — the compare/review
+  // steps guard on selectedBeneficiary existing before rendering.
+  const corridorId = selectedBeneficiary?.corridorId ?? defaultCorridorId
+  const corridor = corridors.find((c) => c.id === corridorId)!
 
   const corridorRates = useMemo(() => providerRates.filter((r) => r.corridorId === corridorId), [corridorId])
 
@@ -120,20 +197,8 @@ export function SendMoneyModal({ isOpen, onClose, onComplete, beneficiaries, pro
   const selectedProvider = selectedProviderId ? providers.find((p) => p.id === selectedProviderId) : undefined
   const selectedQuote = selectedProviderId && !isZeroOrInvalid ? quoteFor(selectedProviderId, corridorId, numericAmount) : undefined
 
-  const corridorBeneficiaries = useMemo(
-    () => beneficiaries.filter((b) => b.corridorId === corridorId),
-    [beneficiaries, corridorId],
-  )
-  const selectedBeneficiary = corridorBeneficiaries.find((b) => b.id === selectedBeneficiaryId)
-
   const tier = tierById(currentUserTierProgress.tierId)
   const cashbackAed = tier.cashbackPercent > 0 ? (numericAmount * tier.cashbackPercent) / 100 : 0
-
-  const handleCorridorChange = (id: string) => {
-    setCorridorId(id)
-    setSelectedProviderId(null)
-    setSelectedBeneficiaryId(null)
-  }
 
   const handleSelectProvider = (providerId: string, isConnected: boolean) => {
     if (!isConnected) {
@@ -142,7 +207,7 @@ export function SendMoneyModal({ isOpen, onClose, onComplete, beneficiaries, pro
       return
     }
     setSelectedProviderId(providerId)
-    setStep('beneficiary')
+    setStep('review')
   }
 
   const handleSend = () => {
@@ -161,46 +226,57 @@ export function SendMoneyModal({ isOpen, onClose, onComplete, beneficiaries, pro
     }, 700)
   }
 
-  const stepIndex = { amount: 1, compare: 2, beneficiary: 3, review: 4 }[step]
-
   return (
     <Modal isOpen={isOpen} onClose={onClose} label="Send money">
       <div className={styles.content}>
         {step === 'amount' && (
           <>
-            <button type="button" className={`ds-text-label ${styles.backButton}`} onClick={onClose}>
-              ← Send money
-            </button>
-            <p className={`ds-text-label ${styles.stepHeading}`}>Step {stepIndex} of 4 — Amount &amp; destination</p>
-
-            <CountrySelector
-              label="Send to"
-              options={corridors.map((c) => ({ id: c.id, countryName: c.countryName, currencyCode: c.currencyCode, flag: c.flag }))}
-              value={corridorId}
-              onChange={handleCorridorChange}
-            />
+            <StepHeader title="Send money" step="amount" onClose={onClose} />
 
             <AmountInput
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              helperText={`Sent from your linked AED funding source`}
+              helperText="Sent from your linked AED funding source"
               errorText={isZeroOrInvalid ? 'Enter an amount to send' : undefined}
             />
 
-            <Button variant="primary" fullWidth disabled={isZeroOrInvalid} onClick={() => setStep('compare')}>
-              Compare providers
+            <Button variant="primary" fullWidth disabled={isZeroOrInvalid} onClick={() => setStep('beneficiary')}>
+              Continue
             </Button>
           </>
         )}
 
-        {step === 'compare' && (
+        {step === 'beneficiary' && (
           <>
-            <button type="button" className={`ds-text-label ${styles.backButton}`} onClick={() => setStep('amount')}>
-              ← Amount &amp; destination
-            </button>
-            <p className={`ds-text-label ${styles.stepHeading}`}>Step {stepIndex} of 4 — Compare providers</p>
+            <StepHeader title="Choose beneficiary" step="beneficiary" onBack={() => setStep('amount')} onClose={onClose} />
+            <div className={styles.recipientList}>
+              {beneficiaries.map((b) => {
+                const c = corridors.find((corr) => corr.id === b.corridorId)!
+                return (
+                  <RecipientOption
+                    key={b.id}
+                    initials={b.initials}
+                    name={`${c.flag} ${b.name}`}
+                    meta={`${c.countryName} · ${beneficiaryMeta(b)}`}
+                    selected={b.id === selectedBeneficiaryId}
+                    onClick={() => {
+                      setSelectedBeneficiaryId(b.id)
+                      setSelectedProviderId(null)
+                      setStep('compare')
+                    }}
+                  />
+                )
+              })}
+              <AddRecipient />
+            </div>
+          </>
+        )}
+
+        {step === 'compare' && selectedBeneficiary && (
+          <>
+            <StepHeader title="Compare providers" step="compare" onBack={() => setStep('beneficiary')} onClose={onClose} />
             <p className="ds-text-caption" style={{ color: 'var(--text-muted)' }}>
-              Sending AED {numericAmount.toFixed(2)} to {corridor.countryName}
+              Sending AED {numericAmount.toFixed(2)} to {selectedBeneficiary.name} in {corridor.countryName}
             </p>
 
             <SegmentedControl
@@ -250,37 +326,9 @@ export function SendMoneyModal({ isOpen, onClose, onComplete, beneficiaries, pro
           </>
         )}
 
-        {step === 'beneficiary' && (
-          <>
-            <button type="button" className={`ds-text-label ${styles.backButton}`} onClick={() => setStep('compare')}>
-              ← Compare providers
-            </button>
-            <p className={`ds-text-label ${styles.stepHeading}`}>Step {stepIndex} of 4 — Choose beneficiary</p>
-            <div className={styles.recipientList}>
-              {corridorBeneficiaries.map((b) => (
-                <RecipientOption
-                  key={b.id}
-                  initials={b.initials}
-                  name={b.name}
-                  meta={`${payoutMethodLabel(b.payoutMethod)}${b.bank ? ` · ${b.bank.bankName} ${b.bank.accountNumberMasked}` : ''}${b.mobileWallet ? ` · ${b.mobileWallet.walletProvider} ${b.mobileWallet.numberMasked}` : ''}`}
-                  selected={b.id === selectedBeneficiaryId}
-                  onClick={() => {
-                    setSelectedBeneficiaryId(b.id)
-                    setStep('review')
-                  }}
-                />
-              ))}
-              <AddRecipient />
-            </div>
-          </>
-        )}
-
         {step === 'review' && selectedProvider && selectedRate && selectedBeneficiary && selectedQuote && (
           <>
-            <button type="button" className={`ds-text-label ${styles.backButton}`} onClick={() => setStep('beneficiary')}>
-              ← Choose beneficiary
-            </button>
-            <p className={`ds-text-label ${styles.stepHeading}`}>Step {stepIndex} of 4 — Review &amp; send</p>
+            <StepHeader title="Review & send" step="review" onBack={() => setStep('compare')} onClose={onClose} />
 
             <div className={styles.chip}>
               <div className={styles.chipMid}>
@@ -312,10 +360,7 @@ export function SendMoneyModal({ isOpen, onClose, onComplete, beneficiaries, pro
               ))}
             </div>
 
-            <TotalBlock
-              total={`AED ${numericAmount.toFixed(2)}`}
-              onBreakdownClick={() => setStep('compare')}
-            />
+            <TotalBlock total={`AED ${numericAmount.toFixed(2)}`} onBreakdownClick={() => setStep('compare')} />
             {cashbackAed > 0 && (
               <p className="ds-text-caption" style={{ color: 'var(--text-savings)' }}>
                 + AED {cashbackAed.toFixed(2)} cashback after this transfer
