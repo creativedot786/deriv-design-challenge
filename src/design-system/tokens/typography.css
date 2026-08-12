@@ -7,6 +7,12 @@
 
 :root {
   --font-family-base: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  /* New in M9 (aggregator expansion). Reserved for hero monetary figures
+   * only (balance/wallet number, amount input, tier progress) — every
+   * other text role keeps --font-family-base. Not a token replacement,
+   * an addition layered on top of the same size/line-height/weight
+   * variables below. */
+  --font-family-display: 'Space Grotesk', var(--font-family-base);
 
   --text-display-xl-size: 48px;
   --text-display-xl-line-height: 56px;
@@ -102,4 +108,12 @@
   font-size: var(--text-label-size);
   line-height: var(--text-label-line-height);
   font-weight: var(--text-label-weight);
+}
+
+/* New in M9. A modifier, not a new text style — stack onto an existing
+ * .ds-text-* class (e.g. `ds-text-display-xl ds-font-display`) to swap
+ * just the typeface for a hero monetary figure. Keeps size/line-height/
+ * weight coming from the one class, per the existing pattern. */
+.ds-font-display {
+  font-family: var(--font-family-display);
 }

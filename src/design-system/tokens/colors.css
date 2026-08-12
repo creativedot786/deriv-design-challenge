@@ -71,4 +71,39 @@
    * now that they're modals. ink-900 at 50% alpha, not a new primitive.
    */
   --overlay-scrim: rgba(15, 23, 42, 0.5);
+
+  /* ---------- Primitives — Value Teal ----------
+   * New in M9 (aggregator expansion). Deliberately cool/blue-green where
+   * success-500 is a warm spring-green — reserved for savings/cashback
+   * moments (comparison winner, savings chip) so they never read as a
+   * generic "Completed" status at a glance. See --text-savings below.
+   */
+  --teal-100: #d7f0ec;
+  --teal-500: #0b7a75;
+  --teal-700: #085f5b;
+
+  /* ---------- Primitives — Tier ----------
+   * New in M9. A deliberate ascending ladder (cool/neutral -> warm gold ->
+   * violet just outside brand-500's hue family) rather than four
+   * unrelated hues — see the visual-identity proposal for the reasoning.
+   * Used directly by tier components, not routed through a semantic
+   * alias — tiers are a closed, named set (Blue/Silver/Gold/Platinum),
+   * not a general-purpose semantic color.
+   */
+  --tier-blue: #3b7dd8;
+  --tier-blue-muted: #e6eefb;
+  --tier-silver: #6b7280;
+  --tier-silver-muted: #eceef1;
+  --tier-gold: #b8860b;
+  --tier-gold-muted: #faf1dc;
+  --tier-platinum: #6d4fc4;
+  --tier-platinum-muted: #efe9fb;
+
+  /* ---------- Semantic — Savings ----------
+   * New in M9. Additive to the existing Text/Background groups above —
+   * kept as its own small group since "savings" isn't a status the way
+   * success/warning/error are.
+   */
+  --text-savings: var(--teal-500);
+  --bg-savings-muted: var(--teal-100);
 }
