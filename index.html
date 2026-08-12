@@ -5,6 +5,20 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>RemitOne — Money Transfer</title>
+    <!--
+      Loads both typefaces the design system's tokens declare
+      (typography.css: --font-family-base / --font-family-display).
+      Neither was actually being fetched before — every text style,
+      including the base Inter used throughout, was silently falling
+      back to the OS system font. Weights cover every value the app
+      actually uses (grep for font-weight across src/): 400/500/600/700.
+    -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
   </head>
   <body>
     <div id="root"></div>
