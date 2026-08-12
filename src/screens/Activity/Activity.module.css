@@ -3,3 +3,26 @@
   flex-direction: column;
   gap: var(--space-6);
 }
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.groupLabel {
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* TransactionRow's resting background is already transparent (only
+   hover shows bg-surface-muted), so it doesn't need a listItem variant
+   the way RecipientOption/ProviderConnectCard did in M19 — just needs
+   the bounding Card so the group isn't floating directly on the page
+   canvas. */
+.listCard {
+  padding: var(--space-2);
+  display: flex;
+  flex-direction: column;
+}
