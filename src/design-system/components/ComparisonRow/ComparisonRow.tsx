@@ -17,7 +17,13 @@ export interface ComparisonRowProps {
   rankLabel?: string
   /** Tier cashback, e.g. "+ AED 4.20 cashback". Additive to the provider's own number, never rewrites it — see the discovery doc's note on protecting the comparison's trust story. */
   cashbackLabel?: string
-  onAction: () => void
+  /**
+   * Omit for a read-only/informational context (M23's Home rate
+   * checker) — no button renders at all, connected or not. There's
+   * nothing to connect-to or select when the row isn't part of an
+   * actual send flow.
+   */
+  onAction?: () => void
 }
 
 /**
@@ -73,9 +79,11 @@ export function ComparisonRow({
         {cashbackLabel && isConnected && <SavingsChip>{cashbackLabel}</SavingsChip>}
       </div>
 
-      <Button variant={isConnected ? 'primary' : 'secondary'} fullWidth onClick={onAction}>
-        {isConnected ? 'Select this provider' : 'Connect to send this way'}
-      </Button>
+      {onAction && (
+        <Button variant={isConnected ? 'primary' : 'secondary'} fullWidth onClick={onAction}>
+          {isConnected ? 'Select this provider' : 'Connect to send this way'}
+        </Button>
+      )}
     </div>
   )
 }

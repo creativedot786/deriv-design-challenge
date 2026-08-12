@@ -57,7 +57,7 @@
 .txGroup {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1);
+  gap: var(--space-2);
 }
 
 .txGroupLabel {
@@ -66,24 +66,93 @@
   letter-spacing: 0.04em;
 }
 
-/* M20 — the new hero: "Repeat your last transfer" replaces the old
-   static balance card in the one-Spotlight-per-screen slot (Card's own
-   rule, see its doc comment). */
+/* M23 — a bounded Card with dividers, replacing bare rows floating
+   directly on the page canvas (the fix M19 gave Beneficiaries/
+   Providers but never brought back to Home). */
+.listCard {
+  padding: var(--space-2);
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---------- Rate checker — the new hero ---------- */
+.checkerCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  /* A featured-card accent (not the dark Spotlight treatment, which
+     Wallet reclaims below) — Card only allows one Spotlight per screen,
+     and this is a tool, not a "look at your money" moment. */
+  border-top: 3px solid var(--border-brand);
+}
+
+.checkerFields {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-2);
+}
+
+.checkerField {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.swapButton {
+  align-self: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-full);
+  background: var(--bg-surface-muted);
+  color: var(--text-secondary);
+  border: none;
+  cursor: pointer;
+}
+
+.swapButton:hover {
+  background: var(--bg-brand-muted);
+  color: var(--text-brand);
+}
+
+.checkerResults {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* ---------- Repeat transfer + Wallet ---------- */
+.heroGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-4);
+}
+
+@media (min-width: 640px) {
+  .heroGrid {
+    grid-template-columns: 1fr 1fr;
+    align-items: stretch;
+  }
+}
+
 .repeatCard {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: var(--space-3);
+  gap: var(--space-2);
 }
 
 .repeatMain {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
+  gap: var(--space-2);
 }
 
 .repeatFlag {
-  font-size: 28px;
+  font-size: 22px;
   line-height: 1;
 }
 
@@ -93,40 +162,36 @@
   gap: 2px;
 }
 
-.repeatAmount {
-  font-variant-numeric: tabular-nums;
-}
-
-.repeatArrow {
-  color: var(--text-inverse-muted);
-}
-
-/* Tier / Providers / Wallet — compact, glanceable, stacked with
-   dividers rather than 3 separate cards (avoids the dashboard reading
-   as a wall of boxes). */
-.statStrip {
+.walletCard {
   display: flex;
   flex-direction: column;
+  gap: var(--space-1);
+  justify-content: center;
+}
+
+/* ---------- Tier + Quick send ---------- */
+.statsGrid {
+  display: grid;
+  grid-template-columns: 1fr;
   gap: var(--space-4);
 }
 
-.statTile {
+@media (min-width: 640px) {
+  .statsGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.tierCard {
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   gap: var(--space-2);
-  padding-bottom: var(--space-4);
-  border-bottom: 1px solid var(--border-secondary);
+  justify-content: center;
 }
 
-.statTile:last-child {
-  padding-bottom: 0;
-  border-bottom: none;
-}
-
-.teaser {
+.quickSendCard {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
   gap: var(--space-3);
-  flex-wrap: wrap;
 }

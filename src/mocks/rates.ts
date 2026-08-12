@@ -1,5 +1,6 @@
 import { corridors } from './corridors'
 import { providers } from './providers'
+import type { Provider } from './providers'
 
 export type DeliveryMethod = 'bank' | 'cash_pickup' | 'mobile_wallet'
 
@@ -69,4 +70,61 @@ export function quoteFor(providerId: string, corridorId: string, amountAed: numb
   const spreadAed = (corridor.midMarketRate - rate.exchangeRate) * amountAed / corridor.midMarketRate
 
   return { rate, provider, amountAed, recipientReceives, spreadAed }
+}
+
+export type RateSortBy = 'amount' | 'fast' | 'cheap'
+
+export interface RankedRate {
+  rate: ProviderRate
+  provider: Provider
+  quote?: RateQuote
+  totalCostAed: number
+  isMostReceived: boolean
+  isFastest: boolean
+}
+
+/**
+ * M23 — extracted from SendMoneyModal's inline useMemo chain so the new
+ * Home rate-checker widget and the real Send flow rank providers the
+ * same way instead of maintaining two copies that can quietly drift
+ * apart. Takes `providers` as a parameter (not the static import above)
+ * because callers need the live, possibly-just-connected state from
+ * App.tsx, not the frozen mock default.
+ */
+export function rankProviderRates(
+  corridorId: string,
+  amountAed: number,
+  liveProviders: Provider[],
+  sortBy: RateSortBy = 'amount',
+): RankedRate[] {
+  const isValidAmount = !Number.isNaN(amountAed) && amountAed > 0
+  const corridorRates = providerRates.filter((r) => r.corridorId === corridorId)
+
+  const rows: { rate: ProviderRate; provider: Provider; quote?: RateQuote; totalCostAed: number }[] = []
+  for (const rate of corridorRates) {
+    const provider = liveProviders.find((p) => p.id === rate.providerId)
+    if (!provider) continue
+    const quote = isValidAmount ? quoteFor(rate.providerId, corridorId, amountAed) : undefined
+    const totalCostAed = quote ? rate.feeAed + quote.spreadAed : rate.feeAed
+    rows.push({ rate, provider, quote, totalCostAed })
+  }
+
+  const withQuote = rows.filter((r) => r.quote)
+  const mostReceivedId = withQuote.length
+    ? withQuote.reduce((best, r) => (r.quote!.recipientReceives > best.quote!.recipientReceives ? r : best)).provider.id
+    : null
+  const fastestId = rows.length
+    ? rows.reduce((best, r) => (r.rate.deliveryMinutesEstimate < best.rate.deliveryMinutesEstimate ? r : best)).provider.id
+    : null
+
+  const sorted = [...rows]
+  if (sortBy === 'fast') sorted.sort((a, b) => a.rate.deliveryMinutesEstimate - b.rate.deliveryMinutesEstimate)
+  else if (sortBy === 'cheap') sorted.sort((a, b) => a.totalCostAed - b.totalCostAed)
+  else sorted.sort((a, b) => (b.quote?.recipientReceives ?? 0) - (a.quote?.recipientReceives ?? 0))
+
+  return sorted.map((r) => ({
+    ...r,
+    isMostReceived: r.provider.id === mostReceivedId,
+    isFastest: r.provider.id === fastestId,
+  }))
 }

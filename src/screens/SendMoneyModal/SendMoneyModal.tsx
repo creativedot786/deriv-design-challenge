@@ -14,7 +14,8 @@ import {
 } from '../../design-system/components'
 import { corridors, defaultCorridorId } from '../../mocks/corridors'
 import type { Provider } from '../../mocks/providers'
-import { providerRate, providerRates, quoteFor } from '../../mocks/rates'
+import { providerRate, quoteFor, rankProviderRates } from '../../mocks/rates'
+import type { RateSortBy } from '../../mocks/rates'
 import type { Beneficiary } from '../../mocks/beneficiaries'
 import { fundingMethods } from '../../mocks/fundingMethods'
 import { currentUserTierProgress, tierById } from '../../mocks/tiers'
@@ -58,7 +59,6 @@ export interface SendMoneyModalProps {
 }
 
 type Step = 'amount' | 'beneficiary' | 'compare' | 'review'
-type SortBy = 'amount' | 'fast' | 'cheap'
 
 const STEP_INDEX: Record<Step, number> = { amount: 1, beneficiary: 2, compare: 3, review: 4 }
 const TOTAL_STEPS = 4
@@ -146,7 +146,7 @@ export function SendMoneyModal({ isOpen, onClose, onComplete, beneficiaries, pro
   const navigate = useNavigate()
   const [step, setStep] = useState<Step>('amount')
   const [amount, setAmount] = useState(DEFAULT_AMOUNT)
-  const [sortBy, setSortBy] = useState<SortBy>('amount')
+  const [sortBy, setSortBy] = useState<RateSortBy>('amount')
   const [selectedProviderId, setSelectedProviderId] = useState<string | null>(null)
   const [selectedBeneficiaryId, setSelectedBeneficiaryId] = useState<string | null>(null)
   const [selectedFundingId, setSelectedFundingId] = useState(
@@ -186,37 +186,10 @@ export function SendMoneyModal({ isOpen, onClose, onComplete, beneficiaries, pro
   const corridorId = selectedBeneficiary?.corridorId ?? defaultCorridorId
   const corridor = corridors.find((c) => c.id === corridorId)!
 
-  const corridorRates = useMemo(() => providerRates.filter((r) => r.corridorId === corridorId), [corridorId])
-
-  const rows = useMemo(() => {
-    return corridorRates
-      .map((rate) => {
-        const provider = providers.find((p) => p.id === rate.providerId)!
-        const quote = !isZeroOrInvalid ? quoteFor(rate.providerId, corridorId, numericAmount) : undefined
-        const totalCostAed = quote ? rate.feeAed + quote.spreadAed : rate.feeAed
-        return { rate, provider, quote, totalCostAed }
-      })
-      .filter((r) => r.provider)
-  }, [corridorRates, corridorId, numericAmount, isZeroOrInvalid, providers])
-
-  const mostReceivedProviderId = useMemo(() => {
-    const withQuote = rows.filter((r) => r.quote)
-    if (withQuote.length === 0) return null
-    return withQuote.reduce((best, r) => (r.quote!.recipientReceives > best.quote!.recipientReceives ? r : best)).provider.id
-  }, [rows])
-
-  const fastestProviderId = useMemo(() => {
-    if (rows.length === 0) return null
-    return rows.reduce((best, r) => (r.rate.deliveryMinutesEstimate < best.rate.deliveryMinutesEstimate ? r : best)).provider.id
-  }, [rows])
-
-  const sortedRows = useMemo(() => {
-    const copy = [...rows]
-    if (sortBy === 'fast') copy.sort((a, b) => a.rate.deliveryMinutesEstimate - b.rate.deliveryMinutesEstimate)
-    else if (sortBy === 'cheap') copy.sort((a, b) => a.totalCostAed - b.totalCostAed)
-    else copy.sort((a, b) => (b.quote?.recipientReceives ?? 0) - (a.quote?.recipientReceives ?? 0))
-    return copy
-  }, [rows, sortBy])
+  const rankedRates = useMemo(
+    () => (isZeroOrInvalid ? [] : rankProviderRates(corridorId, numericAmount, providers, sortBy)),
+    [corridorId, numericAmount, isZeroOrInvalid, providers, sortBy],
+  )
 
   const selectedRate = selectedProviderId ? providerRate(selectedProviderId, corridorId) : undefined
   const selectedProvider = selectedProviderId ? providers.find((p) => p.id === selectedProviderId) : undefined
@@ -321,10 +294,8 @@ export function SendMoneyModal({ isOpen, onClose, onComplete, beneficiaries, pro
             />
 
             <div className={styles.compareList}>
-              {sortedRows.map(({ rate, provider, quote }) => {
+              {rankedRates.map(({ rate, provider, quote, isMostReceived, isFastest }) => {
                 const isConnected = provider.status === 'connected'
-                const isMostReceived = provider.id === mostReceivedProviderId
-                const isFastest = provider.id === fastestProviderId
                 const rankLabel =
                   isMostReceived && isFastest
                     ? 'Most received · Fastest'

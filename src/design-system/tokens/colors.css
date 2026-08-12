@@ -92,8 +92,14 @@
    */
   --tier-blue: #3b7dd8;
   --tier-blue-muted: #e6eefb;
-  --tier-silver: #6b7280;
-  --tier-silver-muted: #eceef1;
+  /* Was a flat neutral grey (#6b7280) — read as "no color assigned" next
+   * to Gold/Platinum's clear identity. Cooler, more saturated steel-blue
+   * plus a two-stop gradient background gives it the metallic quality a
+   * "silver" tier should have. TierBadge itself stays generic — it just
+   * applies `background: var(--tier-silver-muted)`, which works whether
+   * the value is a flat color or (as here) a gradient function. */
+  --tier-silver: #5a6e8c;
+  --tier-silver-muted: linear-gradient(135deg, #e3e8f0 0%, #f1f3f7 100%);
   --tier-gold: #b8860b;
   --tier-gold-muted: #faf1dc;
   --tier-platinum: #6d4fc4;
