@@ -6,8 +6,21 @@ import type { Provider, ProviderStatus } from '../../mocks/providers'
 import { ActivityIcon, HomeIcon, LogoIcon, ProfileIcon, SendIcon } from './icons'
 import styles from './AppShell.module.css'
 
+/**
+ * Structurally identical to SendMoneyModal's SendMoneyPrefill, defined
+ * separately on purpose — AppShell shouldn't import a type from
+ * SendMoneyModal (a sibling screen, not a shared module) just to type
+ * one optional callback param. See AGENTS.md: "screens don't know about
+ * each other."
+ */
+interface SendMoneyPrefill {
+  beneficiaryId?: string
+  providerId?: string
+  amount?: string
+}
+
 export interface AppShellProps {
-  onSendMoneyClick: () => void
+  onSendMoneyClick: (prefill?: SendMoneyPrefill) => void
   /**
    * Lifted to App.tsx in M17/M18 so the Beneficiaries/Providers screens
    * and the Send Money flow all read/write the same lists — mirrors the
@@ -22,7 +35,7 @@ export interface AppShellProps {
 }
 
 export interface AppOutletContext {
-  onSendMoneyClick: () => void
+  onSendMoneyClick: (prefill?: SendMoneyPrefill) => void
   beneficiaries: Beneficiary[]
   onAddBeneficiary: (beneficiary: Beneficiary) => void
   providers: Provider[]
@@ -62,7 +75,7 @@ export function AppShell({
             <span className={`ds-text-label ${styles.brandName}`}>RemitOne</span>
           </div>
 
-          <Button variant="primary" fullWidth onClick={onSendMoneyClick}>
+          <Button variant="primary" fullWidth onClick={() => onSendMoneyClick()}>
             Send money
           </Button>
 
@@ -108,7 +121,7 @@ export function AppShell({
           <HomeIcon />
           Home
         </NavLink>
-        <button type="button" className={styles.bottomNavSend} onClick={onSendMoneyClick}>
+        <button type="button" className={styles.bottomNavSend} onClick={() => onSendMoneyClick()}>
           <span className={styles.bottomNavSendIcon}>
             <SendIcon />
           </span>

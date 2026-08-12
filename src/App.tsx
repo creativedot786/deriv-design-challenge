@@ -7,6 +7,7 @@ import { Providers } from './screens/Providers'
 import { Activity } from './screens/Activity'
 import { Profile } from './screens/Profile'
 import { SendMoneyModal } from './screens/SendMoneyModal'
+import type { SendMoneyPrefill } from './screens/SendMoneyModal'
 import { SuccessModal } from './screens/SuccessModal'
 import { beneficiaries as initialBeneficiaries } from './mocks/beneficiaries'
 import type { Beneficiary } from './mocks/beneficiaries'
@@ -44,7 +45,14 @@ function App() {
       ),
     )
 
-  const openSendMoney = () => setActiveModal('sendMoney')
+  // M20 — carries the "Repeat last transfer" / "Quick send" shortcuts'
+  // prefill from Home into the modal. Cleared on close so a plain
+  // sidebar/nav "Send money" click afterwards starts from a clean slate.
+  const [sendPrefill, setSendPrefill] = useState<SendMoneyPrefill | undefined>(undefined)
+  const openSendMoney = (prefill?: SendMoneyPrefill) => {
+    setSendPrefill(prefill)
+    setActiveModal('sendMoney')
+  }
 
   return (
     <BrowserRouter>
@@ -72,6 +80,7 @@ function App() {
         isOpen={activeModal === 'sendMoney'}
         beneficiaries={beneficiaries}
         providers={providers}
+        prefill={sendPrefill}
         onClose={() => setActiveModal(null)}
         onComplete={(details) => {
           setCompletedTransfer(details)

@@ -20,6 +20,20 @@ import { fundingMethods } from '../../mocks/fundingMethods'
 import { currentUserTierProgress, tierById } from '../../mocks/tiers'
 import styles from './SendMoneyModal.module.css'
 
+/**
+ * M20 — lets Home's "Repeat last transfer" and "Quick send" shortcuts
+ * skip steps that are already answered instead of forcing the full
+ * flow every time. Passing beneficiaryId + providerId + amount all
+ * together jumps straight to Review (a true one-tap repeat); passing
+ * beneficiaryId alone (Quick Send) still asks for an amount but skips
+ * the beneficiary-picker step once it's entered.
+ */
+export interface SendMoneyPrefill {
+  beneficiaryId?: string
+  providerId?: string
+  amount?: string
+}
+
 export interface SendMoneyModalProps {
   isOpen: boolean
   onClose: () => void
@@ -40,6 +54,7 @@ export interface SendMoneyModalProps {
     countryName: string
     recipientReceivesLabel: string
   }) => void
+  prefill?: SendMoneyPrefill
 }
 
 type Step = 'amount' | 'beneficiary' | 'compare' | 'review'
@@ -127,7 +142,7 @@ function StepHeader({
  * before the comparison — the part of this product that's actually
  * differentiated.
  */
-export function SendMoneyModal({ isOpen, onClose, onComplete, beneficiaries, providers }: SendMoneyModalProps) {
+export function SendMoneyModal({ isOpen, onClose, onComplete, beneficiaries, providers, prefill }: SendMoneyModalProps) {
   const navigate = useNavigate()
   const [step, setStep] = useState<Step>('amount')
   const [amount, setAmount] = useState(DEFAULT_AMOUNT)
@@ -139,18 +154,28 @@ export function SendMoneyModal({ isOpen, onClose, onComplete, beneficiaries, pro
   )
   const [isSending, setIsSending] = useState(false)
 
-  // Reset to a clean first step every time the modal is (re)opened.
+  // Reset (or prefill) every time the modal is (re)opened. A full
+  // prefill (beneficiary + provider + amount, from "Repeat last
+  // transfer") jumps straight to Review; a partial one (beneficiary
+  // only, from Quick Send) still starts at Amount but carries the
+  // beneficiary through so Continue can skip the picker step.
   useEffect(() => {
     if (isOpen) {
-      setStep('amount')
-      setAmount(DEFAULT_AMOUNT)
+      setAmount(prefill?.amount ?? DEFAULT_AMOUNT)
+      setSelectedBeneficiaryId(prefill?.beneficiaryId ?? null)
+      setSelectedProviderId(prefill?.providerId ?? null)
       setSortBy('amount')
-      setSelectedProviderId(null)
-      setSelectedBeneficiaryId(null)
       setSelectedFundingId(fundingMethods.find((f) => f.isDefault)?.id ?? fundingMethods[0]?.id)
       setIsSending(false)
+      setStep(prefill?.beneficiaryId && prefill?.providerId && prefill?.amount ? 'review' : 'amount')
     }
-  }, [isOpen])
+    // Depend on primitive fields, not the prefill object reference — a
+    // parent that builds `prefill` inline on every render (a plain
+    // object literal, not memoized) would otherwise re-fire this effect
+    // on every re-render while the modal is open, silently resetting
+    // whatever step the user had navigated to.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, prefill?.beneficiaryId, prefill?.providerId, prefill?.amount])
 
   const numericAmount = Number.parseFloat(amount)
   const isZeroOrInvalid = Number.isNaN(numericAmount) || numericAmount <= 0
@@ -240,7 +265,12 @@ export function SendMoneyModal({ isOpen, onClose, onComplete, beneficiaries, pro
               errorText={isZeroOrInvalid ? 'Enter an amount to send' : undefined}
             />
 
-            <Button variant="primary" fullWidth disabled={isZeroOrInvalid} onClick={() => setStep('beneficiary')}>
+            <Button
+              variant="primary"
+              fullWidth
+              disabled={isZeroOrInvalid}
+              onClick={() => setStep(selectedBeneficiaryId ? 'compare' : 'beneficiary')}
+            >
               Continue
             </Button>
           </>
